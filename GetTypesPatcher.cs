@@ -3,11 +3,9 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using Mono.Collections.Generic;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace Silksong.Prepatcher
 {
@@ -15,17 +13,6 @@ namespace Silksong.Prepatcher
     {
         private static ManualLogSource Log = Logger.CreateLogSource($"Silksong.Prepatcher.{nameof(GetTypesPatcher)}");
 
-        public static Type[] GetTypesSafely(Assembly asm)
-        {
-            try
-            {
-                return asm.GetTypes();
-            }
-            catch (ReflectionTypeLoadException ex)
-            {
-                return ex.Types.Where(x => x is not null).ToArray();
-            }
-        }
 
         /// <summary>
         /// Get all types in a module, including nested types.
@@ -50,7 +37,7 @@ namespace Silksong.Prepatcher
 
         public static void PatchAssembly(AssemblyDefinition asm)
         {
-            MethodInfo newMethodInfo = typeof(GetTypesPatcher).GetMethod(nameof(GetTypesSafely), [typeof(Assembly)]);
+            MethodInfo newMethodInfo = typeof(AssemblyExtensions).GetMethod(nameof(AssemblyExtensions.GetTypesSafely), [typeof(Assembly)]);
             MethodReference newMethodRef = asm.MainModule.ImportReference(newMethodInfo);
 
             foreach (TypeDefinition type in GetTypeReferences(asm.MainModule))
