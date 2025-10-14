@@ -28,13 +28,17 @@
     <PackageReference Include="BepInEx.Core" Version="5.4.21" />
   </ItemGroup>
 
-  <Target Name="CopyMod" AfterTargets="PostBuildEvent" Condition="'$(SilksongFolder)' != ''">
+  <Target Name="CopyMod" AfterTargets="PostBuildEvent">
     <ItemGroup>
       <Binaries Include="$(TargetPath)" />
       <Binaries Include="$(TargetDir)/$(TargetName).pdb" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(Binaries)" DestinationFolder="$(SilksongFolder)/BepInEx/patchers/$(TargetName)" />
+    <Copy
+      SourceFiles="@(Binaries)"
+      DestinationFolder="$(SilksongFolder)/BepInEx/patchers/$(TargetName)"
+      Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
+    />
 
     <PropertyGroup>
       <ExportFolder>bin/Publish</ExportFolder>
