@@ -36,7 +36,7 @@
 
     <Copy
       SourceFiles="@(Binaries)"
-      DestinationFolder="$(SilksongFolder)/BepInEx/plugins/$(TargetName)"
+      DestinationFolder="$(SilksongFolder)/BepInEx/patchers/$(TargetName)"
       Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
     />
 
