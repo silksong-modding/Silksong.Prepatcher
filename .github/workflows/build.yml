@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release
+
+      - name: Unzip build output
+        run: unzip -o bin/Publish/SilksongPrepatcher.zip -d bin/Publish/ArtifactFiles
+        
+      - name: Prepare artifacts for release
+        uses: actions/upload-artifact@v4
+        with:
+          name: SilksongPrepatcher
+          path: bin/Publish/ArtifactFiles
