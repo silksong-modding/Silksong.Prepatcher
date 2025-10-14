@@ -13,11 +13,11 @@ namespace Silksong.Prepatcher
 
     public static class AssemblyPatcher
     {
-        public static IEnumerable<string> TargetDLLs { get; } = new[] { "TeamCherry.NestedFadeGroup.dll" };
+        public static IEnumerable<string> TargetDLLs { get; } = new[] { "TeamCherry.NestedFadeGroup.dll", "PlayMaker.dll" };
 
         public static void Patch(AssemblyDefinition assembly)
         {
-            if (assembly.Name.Name == "TeamCherry.NestedFadeGroup")
+            if (assembly.Name.Name == "TeamCherry.NestedFadeGroup" || assembly.Name.Name == "PlayMaker")
             {
                 GetTypesPatcher.PatchAssembly(assembly);
             }
