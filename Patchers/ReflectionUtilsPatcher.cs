@@ -25,7 +25,7 @@ namespace Silksong.Prepatcher.Patchers
 
         public static void PatchAssembly(AssemblyDefinition assembly)
         {
-            Log.LogInfo($"Patching ReflectionUtils typeLookup dict in {assembly.Name.Name}");
+            Log.LogInfo($"Attempting to patch ReflectionUtils typeLookup dict in {assembly.Name.Name}");
 
             TypeDefinition typeDef = assembly.MainModule.Types.FirstOrDefault(t => t.Name == "ReflectionUtils");
 
@@ -82,6 +82,8 @@ namespace Silksong.Prepatcher.Patchers
             il.InsertBefore(ret, il.Create(OpCodes.Callvirt, setItemMethodRef));
 
             cctor.Body.OptimizeMacros();
+
+            Log.LogInfo($"Patch successfully applied");
         }
     }
 }
