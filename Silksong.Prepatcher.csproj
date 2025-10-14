@@ -30,8 +30,8 @@
 
   <Target Name="CopyMod" AfterTargets="PostBuildEvent" Condition="'$(SilksongFolder)' != ''">
     <ItemGroup>
-      <Binaries Include="$(TargetPath)"/>
-      <Binaries Include="$(TargetDir)/$(TargetName).pdb"/>
+      <Binaries Include="$(TargetPath)" />
+      <Binaries Include="$(TargetDir)/$(TargetName).pdb" />
     </ItemGroup>
 
     <Copy SourceFiles="@(Binaries)" DestinationFolder="$(SilksongFolder)/BepInEx/patchers/$(TargetName)" />
@@ -40,9 +40,9 @@
       <ExportFolder>bin/Publish</ExportFolder>
     </PropertyGroup>
 
-    <RemoveDir Directories="$(IntermediateOutputPath)/archive"/>
-    <MakeDir Directories="$(ExportFolder)"/>
-    <Copy SourceFiles="@(Binaries)" DestinationFolder="$(IntermediateOutputPath)/archive"/>
-    <ZipDirectory SourceDirectory="$(IntermediateOutputPath)/archive" DestinationFile="$(ExportFolder)/$(TargetName).zip" Overwrite="True"/>
+    <RemoveDir Directories="$(IntermediateOutputPath)/archive" />
+    <MakeDir Directories="$(ExportFolder)" />
+    <Copy SourceFiles="@(Binaries)" DestinationFolder="$(IntermediateOutputPath)/archive" />
+    <ZipDirectory SourceDirectory="$(IntermediateOutputPath)/archive" DestinationFile="$(ExportFolder)/$(TargetName).zip" Overwrite="True" />
   </Target>
 </Project>

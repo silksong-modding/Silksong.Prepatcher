@@ -1,12 +1,6 @@
-using BepInEx.Logging;
 using Mono.Cecil;
-using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
-using Mono.Collections.Generic;
-using System;
+using Silksong.Prepatcher.Patchers;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 namespace Silksong.Prepatcher
 {
@@ -20,6 +14,10 @@ namespace Silksong.Prepatcher
             if (assembly.Name.Name == "TeamCherry.NestedFadeGroup" || assembly.Name.Name == "PlayMaker")
             {
                 GetTypesPatcher.PatchAssembly(assembly);
+            }
+            if (assembly.Name.Name == "PlayMaker")
+            {
+                ReflectionUtilsPatcher.PatchAssembly(assembly);
             }
         }
     }

@@ -7,11 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Silksong.Prepatcher
+namespace Silksong.Prepatcher.Patchers
 {
     internal static class GetTypesPatcher
     {
-        private static ManualLogSource Log = Logger.CreateLogSource($"Silksong.Prepatcher.{nameof(GetTypesPatcher)}");
+        private static readonly ManualLogSource Log = Logger.CreateLogSource($"Silksong.Prepatcher.{nameof(GetTypesPatcher)}");
 
 
         /// <summary>
