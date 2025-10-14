@@ -7,11 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Silksong.Prepatcher.Patchers
+namespace SilksongPrepatcher.Patchers
 {
-    internal static class GetTypesPatcher
+    public static class GetTypesPatcher
     {
-        private static readonly ManualLogSource Log = Logger.CreateLogSource($"Silksong.Prepatcher.{nameof(GetTypesPatcher)}");
+        private static readonly ManualLogSource Log = Logger.CreateLogSource($"SilksongPrepatcher.{nameof(GetTypesPatcher)}");
+
+        public static IEnumerable<string> TargetDLLs { get; } = new[] { AssemblyNames.TeamCherry_NestedFadeGroup, AssemblyNames.PlayMaker };
 
 
         /// <summary>
@@ -35,8 +37,10 @@ namespace Silksong.Prepatcher.Patchers
             }
         }
 
-        public static void PatchAssembly(AssemblyDefinition asm)
+        public static void Patch(AssemblyDefinition asm)
         {
+            Log.LogInfo($"Patching {asm.Name.Name}");
+
             MethodInfo newMethodInfo = typeof(AssemblyExtensions).GetMethod(nameof(AssemblyExtensions.GetTypesSafely), [typeof(Assembly)]);
             MethodReference newMethodRef = asm.MainModule.ImportReference(newMethodInfo);
 

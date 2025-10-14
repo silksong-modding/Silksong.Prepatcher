@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Linq;
 
-namespace Silksong.Prepatcher
+namespace SilksongPrepatcher
 {
     public static class AssemblyExtensions
     {

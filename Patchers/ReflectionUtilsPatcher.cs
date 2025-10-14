@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Silksong.Prepatcher.Patchers
+namespace SilksongPrepatcher.Patchers
 {
     /// <summary>
     /// Patch ReflectionUtils to not slow the game when entering certain scenes
@@ -19,11 +19,13 @@ namespace Silksong.Prepatcher.Patchers
     /// We insert the correct type into the typeLookup on the ReflectionUtils class
     /// so that this slowdown doesn't happen.
     /// </summary>
-    internal static class ReflectionUtilsPatcher
+    public static class ReflectionUtilsPatcher
     {
         private static readonly ManualLogSource Log = Logger.CreateLogSource($"Silksong.Prepatcher.{nameof(ReflectionUtilsPatcher)}");
 
-        public static void PatchAssembly(AssemblyDefinition assembly)
+        public static IEnumerable<string> TargetDLLs { get; } = new[] { AssemblyNames.PlayMaker };
+
+        public static void Patch(AssemblyDefinition assembly)
         {
             Log.LogInfo($"Attempting to patch ReflectionUtils typeLookup dict in {assembly.Name.Name}");
 
