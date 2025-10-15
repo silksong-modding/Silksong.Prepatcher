@@ -41,7 +41,7 @@ namespace SilksongPrepatcher.Patchers
         {
             Log.LogInfo($"Patching {asm.Name.Name}");
 
-            MethodInfo newMethodInfo = typeof(AssemblyExtensions).GetMethod(nameof(AssemblyExtensions.GetTypesSafely), [typeof(Assembly)]);
+            MethodInfo newMethodInfo = typeof(AssemblyExtensions).GetMethod(nameof(AssemblyExtensions.GetTypesSafelyIgnoreMMHook), [typeof(Assembly)]);
             MethodReference newMethodRef = asm.MainModule.ImportReference(newMethodInfo);
 
             foreach (TypeDefinition type in GetTypeReferences(asm.MainModule))
