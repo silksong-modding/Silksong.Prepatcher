@@ -6,6 +6,8 @@ using Mono.Collections.Generic;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using AssemblyExtensions = SilksongPrepatcher.Utils.AssemblyExtensions;
+using SilksongPrepatcher.Utils;
 
 namespace SilksongPrepatcher.Patchers
 {
@@ -15,28 +17,6 @@ namespace SilksongPrepatcher.Patchers
 
         public static IEnumerable<string> TargetDLLs { get; } = new[] { AssemblyNames.TeamCherry_NestedFadeGroup, AssemblyNames.PlayMaker };
 
-
-        /// <summary>
-        /// Get all types in a module, including nested types.
-        /// </summary>
-        public static IEnumerable<TypeReference> GetTypeReferences(ModuleDefinition mod)
-        {
-            Queue<TypeDefinition> targets = new(mod.Types);
-
-            while (targets.Count > 0)
-            {
-                TypeDefinition type = targets.Dequeue();
-
-                if (type.IsInterface) { continue; }
-                yield return type;
-
-                foreach (TypeDefinition nested in type.NestedTypes)
-                {
-                    targets.Enqueue(nested);
-                }
-            }
-        }
-
         public static void Patch(AssemblyDefinition asm)
         {
             Log.LogInfo($"Patching {asm.Name.Name}");
@@ -44,7 +24,7 @@ namespace SilksongPrepatcher.Patchers
             MethodInfo newMethodInfo = typeof(AssemblyExtensions).GetMethod(nameof(AssemblyExtensions.GetTypesSafelyIgnoreMMHook), [typeof(Assembly)]);
             MethodReference newMethodRef = asm.MainModule.ImportReference(newMethodInfo);
 
-            foreach (TypeDefinition type in GetTypeReferences(asm.MainModule))
+            foreach (TypeDefinition type in CecilUtils.GetTypeDefinitions(asm.MainModule))
             {
                 foreach (MethodDefinition method in type.Methods.Where(m => m.HasBody))
                 {
