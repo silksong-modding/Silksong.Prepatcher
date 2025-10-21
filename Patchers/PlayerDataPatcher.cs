@@ -195,7 +195,7 @@ namespace SilksongPrepatcher.Patchers
             Log.LogInfo($"Patched {replaceCounter} accesses in {sw.ElapsedMilliseconds} ms");
 
             // if debugging
-            mod.Write(Path.Combine(Paths.BepInExRootPath, "patched_Assembly-CSharp.dll"));  // (and then inspect in DNSpy)
+            // mod.Write(Path.Combine(Paths.BepInExRootPath, "patched_Assembly-CSharp.dll"));  // (and then inspect in DNSpy)
         }
     }
 }
