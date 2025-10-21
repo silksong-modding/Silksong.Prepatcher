@@ -1,4 +1,5 @@
-﻿using BepInEx.Logging;
+﻿using BepInEx;
+using BepInEx.Logging;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -6,6 +7,7 @@ using MonoMod.Utils;
 using SilksongPrepatcher.Utils;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace SilksongPrepatcher.Patchers
@@ -14,16 +16,22 @@ namespace SilksongPrepatcher.Patchers
     {
         private static readonly ManualLogSource Log = Logger.CreateLogSource($"SilksongPrepatcher.{nameof(PlayerDataPatcher)}");
 
-        public static IEnumerable<string> TargetDLLs { get; } = new[] { AssemblyNames.Assembly_CSharp };
+        public static IEnumerable<string> TargetDLLs { get; } = new[] { AssemblyNames.Assembly_CSharp, };
 
         public static void Patch(AssemblyDefinition asm)
         {
             Log.LogInfo($"Patching {asm.Name.Name}");
 
-            int replaceCounter = 0;
+            // Get the method definition for the GetVariable and SetVariable methods
+            AssemblyDefinition sharedUtilsAsm = AssemblyDefinition.ReadAssembly(Path.Combine(Paths.ManagedPath, "TeamCherry.SharedUtils.dll"));
+            TypeDefinition variableExt = sharedUtilsAsm.MainModule.GetType("TeamCherry.SharedUtils.VariableExtensions");
+            MethodDefinition genericGetMethod = variableExt.GetMethods().First(
+                x => x.Name == "GetVariable" && x.ContainsGenericParameter && x.Parameters.Count == 2);
+            MethodDefinition genericSetMethod = variableExt.GetMethods().First(
+                x => x.Name == "SetVariable" && x.ContainsGenericParameter && x.Parameters.Count == 3);
 
-            int getMissCounter = 0;
-            int setMissCounter = 0;
+
+            int replaceCounter = 0;
 
             ModuleDefinition mod = asm.MainModule;
             TypeDefinition pdType = mod.Types.First(t => t.Name == "PlayerData");
@@ -96,16 +104,27 @@ namespace SilksongPrepatcher.Patchers
                         // Currently: [..., PlayerData] ->(Ldfld) [..., Value]
                         // Should become: [..., PlayerData] ->(Ldstr) [..., PlayerData, FieldName] ->(Callvirt) [..., Value]
 
+                        MethodReference getMethodRef;
+                        OpCode callOpCode;
                         if (!getMethods.TryGetValue(field.FieldType, out MethodDefinition getMethod))
                         {
-                            getMissCounter++;
-                            continue;
+                            MethodReference genericMethodRefImported = mod.ImportReference(genericGetMethod);
+                            GenericInstanceMethod genericInstanceMethod = new(genericMethodRefImported);
+                            genericInstanceMethod.GenericArguments.Add(field.FieldType);
+
+                            getMethodRef = genericInstanceMethod;
+                            callOpCode = OpCodes.Call;
+                        }
+                        else
+                        {
+                            getMethodRef = mod.ImportReference(getMethod);
+                            callOpCode = OpCodes.Callvirt;
                         }
 
                         Instruction[] newInstrs =
                         [
                             il.Create(OpCodes.Ldstr, field.Name),
-                            il.Create(OpCodes.Callvirt, mod.ImportReference(getMethod))
+                            il.Create(callOpCode, getMethodRef)
                         ];
 
                         // Copy over the new instruction so br* style instructions still work
@@ -130,10 +149,21 @@ namespace SilksongPrepatcher.Patchers
                         // ->(Ldloc) [..., PlayerData, FieldName, NewValue]
                         // ->(Callvirt) [...]
 
+                        MethodReference setMethodRef;
+                        OpCode callOpCode;
                         if (!setMethods.TryGetValue(field.FieldType, out MethodDefinition setMethod))
                         {
-                            setMissCounter++;
-                            continue;
+                            MethodReference genericMethodRefImported = mod.ImportReference(genericSetMethod);
+                            GenericInstanceMethod genericInstanceMethod = new(genericMethodRefImported);
+                            genericInstanceMethod.GenericArguments.Add(field.FieldType);
+
+                            setMethodRef = genericInstanceMethod;
+                            callOpCode = OpCodes.Call;
+                        }
+                        else
+                        {
+                            setMethodRef = mod.ImportReference(setMethod);
+                            callOpCode = OpCodes.Callvirt;
                         }
 
                         VariableReference local = GetOrAddLocal(field.FieldType);
@@ -143,7 +173,7 @@ namespace SilksongPrepatcher.Patchers
                             il.Create(OpCodes.Stloc, local),
                             il.Create(OpCodes.Ldstr, field.Name),
                             il.Create(OpCodes.Ldloc, local),
-                            il.Create(OpCodes.Callvirt, mod.ImportReference(setMethod))
+                            il.Create(callOpCode, setMethodRef),
                         ];
 
                         // Copy over the new instruction so br* style instructions still work
@@ -163,10 +193,9 @@ namespace SilksongPrepatcher.Patchers
 
             sw.Stop();
             Log.LogInfo($"Patched {replaceCounter} accesses in {sw.ElapsedMilliseconds} ms");
-            Log.LogInfo($"Missed {getMissCounter} gets and {setMissCounter} sets");
 
             // if debugging
-            // mod.Write(...);  // (and then inspect in DNSpy)
+            mod.Write(Path.Combine(Paths.BepInExRootPath, "patched_Assembly-CSharp.dll"));  // (and then inspect in DNSpy)
         }
     }
 }
