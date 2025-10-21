@@ -6,6 +6,7 @@ using Mono.Cecil.Rocks;
 using MonoMod.Utils;
 using SilksongPrepatcher.Utils;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -94,13 +95,13 @@ namespace SilksongPrepatcher.Patchers
                 {
                     Instruction instr = il.Body.Instructions[instructionIndex];
 
+                    if (instr.Operand is not FieldReference field || field.DeclaringType.FullName != pdType.FullName)
+                    {
+                        continue;
+                    }
+
                     if (instr.OpCode == OpCodes.Ldfld)
                     {
-                        if (instr.Operand is not FieldReference field || field.DeclaringType.FullName != pdType.FullName)
-                        {
-                            continue;
-                        }
-
                         // Currently: [..., PlayerData] ->(Ldfld) [..., Value]
                         // Should become: [..., PlayerData] ->(Ldstr) [..., PlayerData, FieldName] ->(Callvirt) [..., Value]
 
@@ -136,11 +137,6 @@ namespace SilksongPrepatcher.Patchers
                     }
                     else if (instr.OpCode == OpCodes.Stfld)
                     {
-                        if (instr.Operand is not FieldReference field || field.DeclaringType.FullName != pdType.FullName)
-                        {
-                            continue;
-                        }
-
                         // Currently: [..., PlayerData, NewValue] ->(Stfld) [...]
                         // Should become:
                         // - [..., PlayerData, NewValue]
