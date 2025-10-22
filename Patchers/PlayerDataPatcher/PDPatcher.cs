@@ -47,7 +47,7 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
             Log.LogInfo($"Missed {missCounter} accesses");
 
             // if debugging
-            // mod.Write(Path.Combine(Paths.BepInExRootPath, "patched_Assembly-CSharp.dll"));  // (and then inspect in ILSpy)
+            ctx.MainModule.Write(System.IO.Path.Combine(BepInEx.Paths.CachePath, "patched_Assembly-CSharp.dll"));  // (and then inspect in ILSpy)
         }
 
         private static bool PatchMethod(MethodDefinition method, PatchingContext ctx, out int replaced, out int missed)
@@ -77,7 +77,12 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
             {
                 Instruction instr = il.Body.Instructions[instructionIndex];
 
-                if (instr.Operand is not FieldReference field || field.DeclaringType.FullName != ctx.PDType.FullName)
+                if (instr.Operand is not FieldReference field
+                    || field.DeclaringType.FullName != ctx.PDType.FullName
+                    // Private/nonserialized attribute access shouldn't be routed through the event
+                    || field.Resolve().IsPrivate
+                    || field.Resolve().CustomAttributes.Any(ca => ca.AttributeType.FullName == "System.NonSerializedAttribute")
+                    )
                 {
                     continue;
                 }

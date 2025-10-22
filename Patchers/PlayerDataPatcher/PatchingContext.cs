@@ -1,7 +1,6 @@
 ﻿using BepInEx;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,8 +22,8 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
                 .ToDictionary(m => m.ReturnType);
 
             DefaultSetMethods = PDType.Methods
-                .Where(m => m.Name.StartsWith("Set") && DefaultAccessMethods.Contains(m.Name.Substring(3)))
-                .ToDictionary(m => m.ReturnType);
+                .Where(m => m.Name.StartsWith("Set") && DefaultAccessMethods.Contains(m.Name.Substring(3)) && m.Parameters.Count == 2)
+                .ToDictionary(m => m.Parameters[1].ParameterType);
 
 
             AssemblyDefinition sharedUtilsAsm = AssemblyDefinition.ReadAssembly(Path.Combine(Paths.ManagedPath, "TeamCherry.SharedUtils.dll"));
