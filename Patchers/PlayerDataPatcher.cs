@@ -6,7 +6,6 @@ using Mono.Cecil.Rocks;
 using MonoMod.Utils;
 using SilksongPrepatcher.Utils;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -33,6 +32,7 @@ namespace SilksongPrepatcher.Patchers
 
 
             int replaceCounter = 0;
+            int missCounter = 0;
 
             ModuleDefinition mod = asm.MainModule;
             TypeDefinition pdType = mod.Types.First(t => t.Name == "PlayerData");
@@ -182,6 +182,10 @@ namespace SilksongPrepatcher.Patchers
 
                         replaceCounter++;
                     }
+                    else if (instr.OpCode == OpCodes.Ldflda)
+                    {
+                        missCounter++;
+                    }
                 }
 
                 method.Body.OptimizeMacros();
@@ -189,9 +193,10 @@ namespace SilksongPrepatcher.Patchers
 
             sw.Stop();
             Log.LogInfo($"Patched {replaceCounter} accesses in {sw.ElapsedMilliseconds} ms");
+            Log.LogInfo($"Missed {missCounter} accesses");
 
             // if debugging
-            // mod.Write(Path.Combine(Paths.BepInExRootPath, "patched_Assembly-CSharp.dll"));  // (and then inspect in DNSpy)
+            // mod.Write(Path.Combine(Paths.BepInExRootPath, "patched_Assembly-CSharp.dll"));  // (and then inspect in ILSpy)
         }
     }
 }

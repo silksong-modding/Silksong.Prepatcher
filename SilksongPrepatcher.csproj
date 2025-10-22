@@ -34,11 +34,7 @@
       <Binaries Include="$(TargetDir)/$(TargetName).pdb" />
     </ItemGroup>
 
-    <Copy
-      SourceFiles="@(Binaries)"
-      DestinationFolder="$(SilksongFolder)/BepInEx/patchers/$(TargetName)"
-      Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
-    />
+    <Copy SourceFiles="@(Binaries)" DestinationFolder="$(SilksongFolder)/BepInEx/patchers/$(TargetName)" Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')" />
 
     <PropertyGroup>
       <ExportFolder>bin/Publish</ExportFolder>
