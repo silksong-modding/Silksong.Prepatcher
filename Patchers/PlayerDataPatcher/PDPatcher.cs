@@ -46,8 +46,8 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
             Log.LogInfo($"Patched {replaceCounter} accesses in {sw.ElapsedMilliseconds} ms");
             Log.LogInfo($"Missed {missCounter} accesses");
 
-            // if debugging
-            ctx.MainModule.Write(System.IO.Path.Combine(BepInEx.Paths.CachePath, "patched_Assembly-CSharp.dll"));  // (and then inspect in ILSpy)
+            // for debugging - can inspect in ILSpy
+            ctx.MainModule.Write(System.IO.Path.Combine(BepInEx.Paths.CachePath, $"{nameof(PDPatcher)}_{AssemblyNames.Assembly_CSharp}.dll"));
         }
 
         private static bool PatchMethod(MethodDefinition method, PatchingContext ctx, out int replaced, out int missed)
