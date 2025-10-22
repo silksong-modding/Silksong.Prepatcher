@@ -4,6 +4,7 @@ using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using MonoMod.Utils;
 using SilksongPrepatcher.Utils;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -22,13 +23,62 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
 
             PatchingContext ctx = new(asm);
 
+            // This technically changes the semantics of the code because pd.OnUpdatedVariable is called
+            // only when the Set is routed through VariableExtensions
+            ReplaceFieldAccesses(ctx);
+            RerouteGetSetFuncs(ctx);
+
+            // for debugging - can inspect in ILSpy
+            ctx.MainModule.Write(System.IO.Path.Combine(BepInEx.Paths.CachePath, $"{nameof(PDPatcher)}_{AssemblyNames.Assembly_CSharp}.dll"));
+        }
+
+        /// <summary>
+        /// Reroute all Get*, Set* function calls through VariableExtensions
+        /// </summary>
+        private static void RerouteGetSetFuncs(PatchingContext ctx)
+        {
+            foreach ((TypeReference fieldType, MethodDefinition method) in ctx.DefaultGetMethods)
+            {
+                ILProcessor il = method.Body.GetILProcessor();
+
+                il.Body.Instructions.Clear();
+
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldarg_1);
+                il.Emit(OpCodes.Call, ctx.CreateGenericGetMethod(fieldType));
+                il.Emit(OpCodes.Ret);
+
+                method.Body.OptimizeMacros();
+            }
+
+            foreach ((TypeReference fieldType, MethodDefinition method) in ctx.DefaultSetMethods)
+            {
+                ILProcessor il = method.Body.GetILProcessor();
+
+                il.Body.Instructions.Clear();
+
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldarg_1);
+                il.Emit(OpCodes.Ldarg_2);
+                il.Emit(OpCodes.Call, ctx.CreateGenericSetMethod(fieldType));
+                il.Emit(OpCodes.Ret);
+
+                method.Body.OptimizeMacros();
+            }
+        }
+
+        /// <summary>
+        /// Replace field accesses with calls to Get/Set variable funcs
+        /// </summary>
+        private static void ReplaceFieldAccesses(PatchingContext ctx)
+        {
             int replaceCounter = 0;
             int missCounter = 0;
 
             Stopwatch sw = new();
             sw.Start();
 
-            foreach (MethodDefinition method in CecilUtils.GetMethodDefinitions(asm.MainModule).Where(md => md.HasBody))
+            foreach (MethodDefinition method in CecilUtils.GetMethodDefinitions(ctx.MainModule).Where(md => md.HasBody))
             {
                 if (method.DeclaringType == ctx.PDType && (
                     method.Name == "SetupNewPlayerData"
@@ -45,9 +95,6 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
             sw.Stop();
             Log.LogInfo($"Patched {replaceCounter} accesses in {sw.ElapsedMilliseconds} ms");
             Log.LogInfo($"Missed {missCounter} accesses");
-
-            // for debugging - can inspect in ILSpy
-            ctx.MainModule.Write(System.IO.Path.Combine(BepInEx.Paths.CachePath, $"{nameof(PDPatcher)}_{AssemblyNames.Assembly_CSharp}.dll"));
         }
 
         private static bool PatchMethod(MethodDefinition method, PatchingContext ctx, out int replaced, out int missed)

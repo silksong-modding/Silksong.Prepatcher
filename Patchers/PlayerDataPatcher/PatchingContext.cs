@@ -60,6 +60,16 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
             Generic,
         }
 
+        public MethodReference CreateGenericGetMethod(TypeReference fieldType)
+        {
+            // TODO - cache this?
+            MethodReference genericMethodRefImported = MainModule.ImportReference(GenericGetMethod);
+            GenericInstanceMethod genericInstanceMethod = new(genericMethodRefImported);
+            genericInstanceMethod.GenericArguments.Add(fieldType);
+
+            return genericInstanceMethod;
+        }
+
         public void GetGetMethod(TypeReference fieldType, out MethodReference accessMethod, out AccessMethodType accessType)
         {
             if (DefaultGetMethods.TryGetValue(fieldType, out MethodDefinition method))
@@ -69,15 +79,21 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
                 return;
             }
 
-            // TODO - cache this?
-            MethodReference genericMethodRefImported = MainModule.ImportReference(GenericGetMethod);
-            GenericInstanceMethod genericInstanceMethod = new(genericMethodRefImported);
-            genericInstanceMethod.GenericArguments.Add(fieldType);
-
-            accessMethod = genericInstanceMethod;
+            accessMethod = CreateGenericGetMethod(fieldType);
             accessType = AccessMethodType.Generic;
             return;
         }
+
+        public MethodReference CreateGenericSetMethod(TypeReference fieldType)
+        {
+            // TODO - cache this?
+            MethodReference genericMethodRefImported = MainModule.ImportReference(GenericSetMethod);
+            GenericInstanceMethod genericInstanceMethod = new(genericMethodRefImported);
+            genericInstanceMethod.GenericArguments.Add(fieldType);
+
+            return genericInstanceMethod;
+        }
+
 
         public void GetSetMethod(TypeReference fieldType, out MethodReference accessMethod, out AccessMethodType accessType)
         {
@@ -88,12 +104,7 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
                 return;
             }
 
-            // TODO - cache this?
-            MethodReference genericMethodRefImported = MainModule.ImportReference(GenericSetMethod);
-            GenericInstanceMethod genericInstanceMethod = new(genericMethodRefImported);
-            genericInstanceMethod.GenericArguments.Add(fieldType);
-
-            accessMethod = genericInstanceMethod;
+            accessMethod = CreateGenericSetMethod(fieldType);
             accessType = AccessMethodType.Generic;
             return;
         }
