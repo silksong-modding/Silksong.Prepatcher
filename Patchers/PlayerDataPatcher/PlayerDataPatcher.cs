@@ -259,8 +259,8 @@ public class PlayerDataPatcher : BasePrepatcher
                 il.Create(OpCodes.Stloc, local),
                 il.Create(OpCodes.Ldloca, local),
                 nextInstr,
-                il.Create(OpCodes.Ldloc, local),
                 il.Create(OpCodes.Ldstr, field.Name),
+                il.Create(OpCodes.Ldloc, local),
                 il.Create(setAccessOpcode, setAccess),
                 ];
 

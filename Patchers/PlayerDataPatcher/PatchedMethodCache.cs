@@ -47,9 +47,6 @@ public class PatchedMethodCache
         File.WriteAllText(filePath, sb.ToString());
     }
 
-    /// <summary>
-    /// Easiest just to return null if it fails metadata validation
-    /// </summary>
     public static PatchedMethodCache? Deserialize(string filePath)
     {
         if (!File.Exists(filePath))
@@ -78,6 +75,7 @@ public class PatchedMethodCache
                     }
                     else
                     {
+                        // Easiest just to return null if it fails metadata validation
                         return null;
                     }
                 }

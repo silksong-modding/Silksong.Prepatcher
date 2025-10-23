@@ -36,7 +36,7 @@ public static class SilksongPrepatcher
 
     public static void Patch(AssemblyDefinition assembly)
     {
-        string assemblyName = assembly.Name.Name;
+        string assemblyName = $"{assembly.Name.Name}.dll";
 
         List<BasePrepatcher> patchers = patcherData
             .Where(pair => pair.assemblyName == assemblyName)
