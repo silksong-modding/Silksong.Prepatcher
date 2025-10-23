@@ -4,112 +4,111 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
+namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
+
+public class PatchedMethodCache
 {
-    public class PatchedMethodCache
+    // Dictionary [typeRef.FullName] -> List<methodRef.FullName>
+    public Dictionary<string, List<string>> PatchedMethods { get; set; } = new();
+
+    public void Add(string typeName, string methodName)
     {
-        // Dictionary [typeRef.FullName] -> List<methodRef.FullName>
-        public Dictionary<string, List<string>> PatchedMethods { get; set; } = new();
+        if (!PatchedMethods.TryGetValue(typeName, out List<string> methods)) methods = PatchedMethods[typeName] = new();
+        methods.Add(methodName);
+    }
 
-        public void Add(string typeName, string methodName)
+    public static string GetMetadataString()
+    {
+        string thisAssemblyVersion = typeof(PatchedMethodCache).Assembly.GetName().Version.ToString();
+
+        string assemblyCsharpPath = Path.Combine(Paths.ManagedPath, AssemblyNames.Assembly_CSharp);
+        DateTime assemblyCSharpModTime = File.GetLastWriteTimeUtc(assemblyCsharpPath);
+
+        return $"{thisAssemblyVersion} // {assemblyCSharpModTime}";
+    }
+
+    // Annoyingly there isn't any JSON available by default
+    public void Serialize(string filePath)
+    {
+        StringBuilder sb = new();
+
+        sb.AppendLine($"X {GetMetadataString()}");
+
+        foreach ((string typeName, List<string> methods) in PatchedMethods)
         {
-            if (!PatchedMethods.TryGetValue(typeName, out List<string> methods)) methods = PatchedMethods[typeName] = new();
-            methods.Add(methodName);
-        }
-
-        public static string GetMetadataString()
-        {
-            string thisAssemblyVersion = typeof(PatchedMethodCache).Assembly.GetName().Version.ToString();
-
-            string assemblyCsharpPath = Path.Combine(Paths.ManagedPath, AssemblyNames.Assembly_CSharp);
-            DateTime assemblyCSharpModTime = File.GetLastWriteTimeUtc(assemblyCsharpPath);
-
-            return $"{thisAssemblyVersion} // {assemblyCSharpModTime}";
-        }
-
-        // Annoyingly there isn't any JSON available by default
-        public void Serialize(string filePath)
-        {
-            StringBuilder sb = new();
-
-            sb.AppendLine($"X {GetMetadataString()}");
-
-            foreach ((string typeName, List<string> methods) in PatchedMethods)
+            sb.AppendLine($"T {typeName}");
+            foreach (string methodName in methods)
             {
-                sb.AppendLine($"T {typeName}");
-                foreach (string methodName in methods)
-                {
-                    sb.AppendLine($"M {methodName}");
-                }
-                sb.AppendLine($"E ");
+                sb.AppendLine($"M {methodName}");
             }
-
-            File.WriteAllText(filePath, sb.ToString());
+            sb.AppendLine($"E ");
         }
 
-        /// <summary>
-        /// Easiest just to return null if it fails metadata validation
-        /// </summary>
-        public static PatchedMethodCache? Deserialize(string filePath)
+        File.WriteAllText(filePath, sb.ToString());
+    }
+
+    /// <summary>
+    /// Easiest just to return null if it fails metadata validation
+    /// </summary>
+    public static PatchedMethodCache? Deserialize(string filePath)
+    {
+        if (!File.Exists(filePath))
         {
-            if (!File.Exists(filePath))
+            return null;
+        }
+
+        bool validated = false;
+        PatchedMethodCache ret = new();
+
+        try 
+        {
+            string[] lines = File.ReadAllLines(filePath);
+
+            string? key = null;
+            List<string> current = new();
+
+            foreach (string line in lines)
             {
-                return null;
-            }
-
-            bool validated = false;
-            PatchedMethodCache ret = new();
-
-            try 
-            {
-                string[] lines = File.ReadAllLines(filePath);
-
-                string? key = null;
-                List<string> current = new();
-
-                foreach (string line in lines)
+                if (line.StartsWith("X "))
                 {
-                    if (line.StartsWith("X "))
+                    string metadata = line.Substring(2);
+                    if (metadata == GetMetadataString())
                     {
-                        string metadata = line.Substring(2);
-                        if (metadata == GetMetadataString())
-                        {
-                            validated = true;
-                        }
-                        else
-                        {
-                            return null;
-                        }
+                        validated = true;
                     }
-                    else if (line.StartsWith("T "))
+                    else
                     {
-                        key = line.Substring(2);
-                    }
-                    else if (line.StartsWith("M "))
-                    {
-                        current.Add(line.Substring(2));
-                    }
-                    else if (line.StartsWith("E "))
-                    {
-                        if (key == null) throw new Exception("Key null on write");
-                        ret.PatchedMethods[key] = current;
-                        key = null;
-                        current = new();
+                        return null;
                     }
                 }
+                else if (line.StartsWith("T "))
+                {
+                    key = line.Substring(2);
+                }
+                else if (line.StartsWith("M "))
+                {
+                    current.Add(line.Substring(2));
+                }
+                else if (line.StartsWith("E "))
+                {
+                    if (key == null) throw new Exception("Key null on write");
+                    ret.PatchedMethods[key] = current;
+                    key = null;
+                    current = new();
+                }
             }
-            catch (Exception)
-            {
-                return null;
-            }
-            
-            if (!validated)
-            {
-                return null;
-            }
-
-            return ret;
         }
+        catch (Exception)
+        {
+            return null;
+        }
+        
+        if (!validated)
+        {
+            return null;
+        }
+
+        return ret;
     }
 }
 
