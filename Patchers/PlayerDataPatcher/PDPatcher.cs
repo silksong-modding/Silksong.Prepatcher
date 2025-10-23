@@ -207,13 +207,21 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
                 }
                 else if (instr.OpCode == OpCodes.Ldflda)
                 {
-                    missed++;
+                    bool patched = TryPatchRefAccess(il, instr, method, ctx);
+                    if (patched) replaced++;
+                    else missed++;
                 }
             }
 
             method.Body.OptimizeMacros();
 
             return replaced > 0;
+        }
+
+        private static bool TryPatchRefAccess(ILProcessor il, Instruction instr, MethodDefinition method, PatchingContext ctx)
+        {
+            // TODO - implement this where desired
+            return false;
         }
     }
 }
