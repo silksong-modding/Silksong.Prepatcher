@@ -1,12 +1,13 @@
-﻿using BepInEx.Logging;
+﻿using BepInEx;
+using BepInEx.Logging;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using MonoMod.Utils;
 using SilksongPrepatcher.Utils;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
@@ -14,6 +15,8 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
     public static class PDPatcher
     {
         private static readonly ManualLogSource Log = Logger.CreateLogSource($"SilksongPrepatcher.PlayerDataPatcher");
+
+        private static readonly string CacheFilePath = Path.Combine(Paths.CachePath, "PDPatcher_cache.txt");
 
         public static IEnumerable<string> TargetDLLs { get; } = new[] { AssemblyNames.Assembly_CSharp, };
 
@@ -23,48 +26,50 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
 
             PatchingContext ctx = new(asm);
 
-            // This technically changes the semantics of the code because pd.OnUpdatedVariable is called
-            // only when the Set is routed through VariableExtensions
-            ReplaceFieldAccesses(ctx);
-            RerouteGetSetFuncs(ctx);
+            PatchedMethodCache? cache = PatchedMethodCache.Deserialize(CacheFilePath);
+            if (cache == null)
+            {
+                ReplaceFieldAccesses(ctx);
+            }
+            else
+            {
+                ReplaceFieldAccessesFromCache(ctx, cache);
+            }
 
             // for debugging - can inspect in ILSpy
-            ctx.MainModule.Write(System.IO.Path.Combine(BepInEx.Paths.CachePath, $"{nameof(PDPatcher)}_{AssemblyNames.Assembly_CSharp}.dll"));
+            ctx.MainModule.Write(Path.Combine(Paths.CachePath, $"{nameof(PDPatcher)}_{AssemblyNames.Assembly_CSharp}"));
         }
 
-        /// <summary>
-        /// Reroute all Get*, Set* function calls through VariableExtensions
-        /// </summary>
-        private static void RerouteGetSetFuncs(PatchingContext ctx)
+        private static void ReplaceFieldAccessesFromCache(PatchingContext ctx, PatchedMethodCache cache)
         {
-            foreach ((TypeReference fieldType, MethodDefinition method) in ctx.DefaultGetMethods)
+            int replaceCounter = 0;
+            int missCounter = 0;
+            Stopwatch sw = new();
+            sw.Start();
+
+            foreach ((string typeName, List<string> methodNames) in cache.PatchedMethods)
             {
-                ILProcessor il = method.Body.GetILProcessor();
+                TypeDefinition type = ctx.MainModule.GetType(typeName);
+                HashSet<string> methodNameSet = new(methodNames);
+                
+                foreach (MethodDefinition method in type.Methods)
+                {
+                    if (methodNames.Contains(method.FullName))
+                    {
+                        bool patched = PatchMethod(method, ctx, out int replaced, out int missed);
+                        if (!patched)
+                        {
+                            throw new System.Exception($"Failed to patch {typeName} {method.FullName}");
+                        }
 
-                il.Body.Instructions.Clear();
-
-                il.Emit(OpCodes.Ldarg_0);
-                il.Emit(OpCodes.Ldarg_1);
-                il.Emit(OpCodes.Call, ctx.CreateGenericGetMethod(fieldType));
-                il.Emit(OpCodes.Ret);
-
-                method.Body.OptimizeMacros();
+                        replaceCounter += replaced;
+                        missCounter += missed;
+                    }
+                }
             }
 
-            foreach ((TypeReference fieldType, MethodDefinition method) in ctx.DefaultSetMethods)
-            {
-                ILProcessor il = method.Body.GetILProcessor();
-
-                il.Body.Instructions.Clear();
-
-                il.Emit(OpCodes.Ldarg_0);
-                il.Emit(OpCodes.Ldarg_1);
-                il.Emit(OpCodes.Ldarg_2);
-                il.Emit(OpCodes.Call, ctx.CreateGenericSetMethod(fieldType));
-                il.Emit(OpCodes.Ret);
-
-                method.Body.OptimizeMacros();
-            }
+            sw.Stop();
+            Log.LogInfo($"Patched {replaceCounter} accesses from cache in {sw.ElapsedMilliseconds} ms");
         }
 
         /// <summary>
@@ -74,27 +79,39 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
         {
             int replaceCounter = 0;
             int missCounter = 0;
+            PatchedMethodCache cache = new();
 
             Stopwatch sw = new();
             sw.Start();
 
-            foreach (MethodDefinition method in CecilUtils.GetMethodDefinitions(ctx.MainModule).Where(md => md.HasBody))
+            foreach (TypeDefinition typeDef in CecilUtils.GetTypeDefinitions(ctx.MainModule))
             {
-                if (method.DeclaringType == ctx.PDType && (
-                    method.Name == "SetupNewPlayerData"
-                    || method.Name.Contains(".ctor")))
+                foreach (MethodDefinition method in typeDef.Methods)
                 {
-                    continue;
+                    if (!method.HasBody) continue;
+
+                    if (method.DeclaringType == ctx.PDType && (
+                        method.Name == "SetupNewPlayerData"
+                        || method.Name.Contains(".ctor")))
+                    {
+                        continue;
+                    }
+
+                    if (PatchMethod(method, ctx, out int replaced, out int missed))
+                    {
+                        cache.Add(typeDef.FullName, method.FullName);
+                    }
+                    replaceCounter += replaced;
+                    missCounter += missed;
                 }
 
-                PatchMethod(method, ctx, out int replaced, out int missed);
-                replaceCounter += replaced;
-                missCounter += missed;
             }
 
             sw.Stop();
             Log.LogInfo($"Patched {replaceCounter} accesses in {sw.ElapsedMilliseconds} ms");
             Log.LogInfo($"Missed {missCounter} accesses");
+
+            cache.Serialize(CacheFilePath);
         }
 
         private static bool PatchMethod(MethodDefinition method, PatchingContext ctx, out int replaced, out int missed)

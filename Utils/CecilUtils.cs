@@ -6,22 +6,31 @@ namespace SilksongPrepatcher.Utils
     public static class CecilUtils
     {
         /// <summary>
+        /// Yield the type, and all nested types
+        /// </summary>
+        public static IEnumerable<TypeDefinition> GetTypesRecursive(TypeDefinition type, bool includeSelf = true)
+        {
+            if (includeSelf) yield return type;
+
+            foreach (TypeDefinition nested in type.NestedTypes)
+            {
+                foreach (TypeDefinition inner in GetTypesRecursive(nested, includeSelf: true))
+                {
+                    yield return inner;
+                }
+            }
+        }
+
+        /// <summary>
         /// Get all types in a module, including nested types.
         /// </summary>
         public static IEnumerable<TypeDefinition> GetTypeDefinitions(ModuleDefinition mod)
         {
-            Queue<TypeDefinition> targets = new(mod.Types);
-
-            while (targets.Count > 0)
+            foreach (TypeDefinition type in mod.Types)
             {
-                TypeDefinition type = targets.Dequeue();
-
-                if (type.IsInterface) { continue; }
-                yield return type;
-
-                foreach (TypeDefinition nested in type.NestedTypes)
+                foreach (TypeDefinition inner in GetTypesRecursive(type, includeSelf: true))
                 {
-                    targets.Enqueue(nested);
+                    yield return inner;
                 }
             }
         }
