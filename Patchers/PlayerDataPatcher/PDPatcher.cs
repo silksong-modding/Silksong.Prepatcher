@@ -5,6 +5,7 @@ using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using MonoMod.Utils;
 using SilksongPrepatcher.Utils;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -207,7 +208,7 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
                 }
                 else if (instr.OpCode == OpCodes.Ldflda)
                 {
-                    bool patched = TryPatchRefAccess(il, instr, method, ctx);
+                    bool patched = TryPatchRefAccess(il, instr, method, ctx, GetOrAddLocal);
                     if (patched) replaced++;
                     else missed++;
                 }
@@ -218,9 +219,72 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher
             return replaced > 0;
         }
 
-        private static bool TryPatchRefAccess(ILProcessor il, Instruction instr, MethodDefinition method, PatchingContext ctx)
+        private static bool TryPatchRefAccess(
+            ILProcessor il, Instruction instr, MethodDefinition method, PatchingContext ctx, Func<TypeReference, VariableReference> getOrAddLocal)
         {
-            // TODO - implement this where desired
+            // Currently this only operates on the five calls in GameManager.TimePassesElsewhere to CheckReadyToLeave(ref ...)
+
+            Instruction nextInstr = instr.Next;
+
+            if (nextInstr.OpCode == OpCodes.Call
+                && nextInstr.Operand is MethodReference methodReference
+                && methodReference.ReturnType.FullName == "System.Void"
+                && methodReference.Parameters.Count == 1
+                && instr.Operand is FieldReference field
+                )
+            {
+                // Current:
+                // [..., PlayerData]
+                // ->(Ldflda) [..., ref field]
+                // ->(Call or Callvirt) [...]
+
+                // Note there are no other args and no return in the case we care about...
+
+                // Desired:
+                // [..., PlayerData]
+                // ->(dup) [..., PlayerData, PlayerData]
+                // ->(Ldstr) [..., PlayerData, fieldName]
+                // ->(Call or callvirt) [..., PlayerData, fieldValue]
+                // ->(Stloc) [..., PlayerData] (fieldValue in locals)
+                // ->(Ldloca) [..., PlayerData, ref fieldValue] (fieldValue in locals)
+                // ->(Call or Callvirt) [..., PlayerData] (fieldValue in locals, updated)
+                // ->(Ldstr) [..., PlayerData, fieldName] (fieldValue in locals, updated)
+                // ->(Ldloc) [..., PlayerData, fieldName, updatedFieldValue]
+                // ->(Call or Callvirt set variable) [...]
+
+                VariableReference local = getOrAddLocal(field.FieldType);
+
+                ctx.GetGetMethod(field.FieldType, out MethodReference getAccess, out PatchingContext.AccessMethodType getAccessType);
+                OpCode getAccessOpcode = getAccessType == PatchingContext.AccessMethodType.Default ? OpCodes.Callvirt : OpCodes.Call;
+                ctx.GetSetMethod(field.FieldType, out MethodReference setAccess, out PatchingContext.AccessMethodType setAccessType);
+                OpCode setAccessOpcode = setAccessType == PatchingContext.AccessMethodType.Default ? OpCodes.Callvirt : OpCodes.Call;
+
+                Instruction[] newInstructions = [
+                    il.Create(OpCodes.Dup),
+                    il.Create(OpCodes.Ldstr, field.Name),  // Modify existing instr here
+                    il.Create(getAccessOpcode, getAccess),
+                    il.Create(OpCodes.Stloc, local),
+                    il.Create(OpCodes.Ldloca, local),
+                    nextInstr,
+                    il.Create(OpCodes.Ldloc, local),
+                    il.Create(OpCodes.Ldstr, field.Name),
+                    il.Create(setAccessOpcode, setAccess),
+                    ];
+
+                il.InsertBefore(instr, newInstructions[0]);
+                instr.OpCode = newInstructions[1].OpCode;
+                instr.Operand = newInstructions[1].Operand;
+                il.InsertAfter(instr, newInstructions[2]);
+                il.InsertAfter(newInstructions[2], newInstructions[3]);
+                il.InsertAfter(newInstructions[3], newInstructions[4]);
+
+                il.InsertAfter(nextInstr, newInstructions[6]);
+                il.InsertAfter(newInstructions[6], newInstructions[7]);
+                il.InsertAfter(newInstructions[7], newInstructions[8]);
+
+                return true;
+            }
+
             return false;
         }
     }
