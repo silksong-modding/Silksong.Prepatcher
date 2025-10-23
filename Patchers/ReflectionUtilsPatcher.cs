@@ -19,16 +19,12 @@ namespace SilksongPrepatcher.Patchers;
 /// We insert the correct type into the typeLookup on the ReflectionUtils class
 /// so that this slowdown doesn't happen.
 /// </summary>
-public static class ReflectionUtilsPatcher
+public class ReflectionUtilsPatcher : BasePrepatcher
 {
     private static readonly ManualLogSource Log = Logger.CreateLogSource($"Silksong.Prepatcher.{nameof(ReflectionUtilsPatcher)}");
 
-    public static IEnumerable<string> TargetDLLs { get; } = new[] { AssemblyNames.PlayMaker };
-
-    public static void Patch(AssemblyDefinition assembly)
+    public override void PatchAssembly(AssemblyDefinition assembly)
     {
-        Log.LogInfo($"Attempting to patch ReflectionUtils typeLookup dict in {assembly.Name.Name}");
-
         TypeDefinition typeDef = assembly.MainModule.Types.FirstOrDefault(t => t.Name == "ReflectionUtils");
 
         if (typeDef == null)

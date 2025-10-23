@@ -3,21 +3,16 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
 
-public static class VEXPatcher
+public class VariableExtensionsPatcher : BasePrepatcher
 {
     private static readonly ManualLogSource Log = Logger.CreateLogSource($"SilksongPrepatcher.PlayerDataPatcher");
 
-    public static IEnumerable<string> TargetDLLs { get; } = new[] { AssemblyNames.TeamCherry_SharedUtils, };
-
-    public static void Patch(AssemblyDefinition asm)
+    public override void PatchAssembly(AssemblyDefinition asm)
     {
-        Log.LogInfo($"Patching {asm.Name.Name}");
-
         ModuleDefinition module = asm.MainModule;
 
         string fullClassName = "TeamCherry.SharedUtils.VariableExtensions";
@@ -54,9 +49,6 @@ public static class VEXPatcher
         {
             PatchGetVariablesMethod(getVariablesMethod, getVariableMethod, module);
         }
-
-        // for debugging - can inspect in ILSpy
-        module.Write(System.IO.Path.Combine(BepInEx.Paths.CachePath, $"{nameof(PDPatcher)}_{AssemblyNames.TeamCherry_SharedUtils}"));
     }
 
     private static void PatchGetVariablesMethod(MethodDefinition method, MethodDefinition getVariableMethod, ModuleDefinition mod)

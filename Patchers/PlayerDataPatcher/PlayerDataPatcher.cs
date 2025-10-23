@@ -13,18 +13,14 @@ using System.Linq;
 
 namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
 
-public static class PDPatcher
+public class PlayerDataPatcher : BasePrepatcher
 {
     private static readonly ManualLogSource Log = Logger.CreateLogSource($"SilksongPrepatcher.PlayerDataPatcher");
 
-    private static readonly string CacheFilePath = Path.Combine(Paths.CachePath, "PDPatcher_cache.txt");
+    private static string CacheFilePath => Path.Combine(SilksongPrepatcher.PatchCacheDir, $"{nameof(PlayerDataPatcher)}_cache.txt");
 
-    public static IEnumerable<string> TargetDLLs { get; } = new[] { AssemblyNames.Assembly_CSharp, };
-
-    public static void Patch(AssemblyDefinition asm)
+    public override void PatchAssembly(AssemblyDefinition asm)
     {
-        Log.LogInfo($"Patching {asm.Name.Name}");
-
         PatchingContext ctx = new(asm);
 
         PatchedMethodCache? cache = PatchedMethodCache.Deserialize(CacheFilePath);
@@ -36,9 +32,6 @@ public static class PDPatcher
         {
             ReplaceFieldAccessesFromCache(ctx, cache);
         }
-
-        // for debugging - can inspect in ILSpy
-        ctx.MainModule.Write(Path.Combine(Paths.CachePath, $"{nameof(PDPatcher)}_{AssemblyNames.Assembly_CSharp}"));
     }
 
     private static void ReplaceFieldAccessesFromCache(PatchingContext ctx, PatchedMethodCache cache)
@@ -60,7 +53,7 @@ public static class PDPatcher
                     bool patched = PatchMethod(method, ctx, out int replaced, out int missed);
                     if (!patched)
                     {
-                        throw new System.Exception($"Failed to patch {typeName} {method.FullName}");
+                        throw new Exception($"Failed to patch {typeName} {method.FullName}");
                     }
 
                     replaceCounter += replaced;
