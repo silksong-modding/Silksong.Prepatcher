@@ -1,39 +1,47 @@
 ﻿using Mono.Cecil;
 using System.Collections.Generic;
 
-namespace SilksongPrepatcher.Utils
+namespace SilksongPrepatcher.Utils;
+
+public static class CecilUtils
 {
-    public static class CecilUtils
+    /// <summary>
+    /// Yield the type, and all nested types
+    /// </summary>
+    public static IEnumerable<TypeDefinition> GetTypesRecursive(TypeDefinition type, bool includeSelf = true)
     {
-        /// <summary>
-        /// Get all types in a module, including nested types.
-        /// </summary>
-        public static IEnumerable<TypeDefinition> GetTypeDefinitions(ModuleDefinition mod)
+        if (includeSelf) yield return type;
+
+        foreach (TypeDefinition nested in type.NestedTypes)
         {
-            Queue<TypeDefinition> targets = new(mod.Types);
-
-            while (targets.Count > 0)
+            foreach (TypeDefinition inner in GetTypesRecursive(nested, includeSelf: true))
             {
-                TypeDefinition type = targets.Dequeue();
-
-                if (type.IsInterface) { continue; }
-                yield return type;
-
-                foreach (TypeDefinition nested in type.NestedTypes)
-                {
-                    targets.Enqueue(nested);
-                }
+                yield return inner;
             }
         }
+    }
 
-        public static IEnumerable<MethodDefinition> GetMethodDefinitions(ModuleDefinition mod)
+    /// <summary>
+    /// Get all types in a module, including nested types.
+    /// </summary>
+    public static IEnumerable<TypeDefinition> GetTypeDefinitions(ModuleDefinition mod)
+    {
+        foreach (TypeDefinition type in mod.Types)
         {
-            foreach (TypeDefinition td in GetTypeDefinitions(mod))
+            foreach (TypeDefinition inner in GetTypesRecursive(type, includeSelf: true))
             {
-                foreach (MethodDefinition md in td.Methods)
-                {
-                    yield return md;
-                }
+                yield return inner;
+            }
+        }
+    }
+
+    public static IEnumerable<MethodDefinition> GetMethodDefinitions(ModuleDefinition mod)
+    {
+        foreach (TypeDefinition td in GetTypeDefinitions(mod))
+        {
+            foreach (MethodDefinition md in td.Methods)
+            {
+                yield return md;
             }
         }
     }
