@@ -1,17 +1,18 @@
-﻿using BepInEx;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using BepInEx;
 using BepInEx.Logging;
 using Mono.Cecil;
 using SilksongPrepatcher.Patchers;
 using SilksongPrepatcher.Patchers.PlayerDataPatcher;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace SilksongPrepatcher;
 
 public static class SilksongPrepatcher
 {
-    private static ManualLogSource Log { get; } = Logger.CreateLogSource(nameof(SilksongPrepatcher));
+    private static ManualLogSource Log { get; } =
+        Logger.CreateLogSource(nameof(SilksongPrepatcher));
 
     private static readonly List<(string assemblyName, BasePrepatcher patcher)> patcherData = new()
     {
@@ -32,7 +33,8 @@ public static class SilksongPrepatcher
         }
     }
 
-    public static IEnumerable<string> TargetDLLs => patcherData.Select(pair => pair.assemblyName).Distinct();
+    public static IEnumerable<string> TargetDLLs =>
+        patcherData.Select(pair => pair.assemblyName).Distinct();
 
     public static void Patch(AssemblyDefinition assembly)
     {
@@ -52,7 +54,9 @@ public static class SilksongPrepatcher
 
         if (Config.Instance.WritePatchedAssemblies.Value)
         {
-            assembly.MainModule.Write(Path.Combine(PatchCacheDir, $"{nameof(SilksongPrepatcher)}_{assemblyName}"));
+            assembly.MainModule.Write(
+                Path.Combine(PatchCacheDir, $"{nameof(SilksongPrepatcher)}_{assemblyName}")
+            );
         }
     }
 }

@@ -9,7 +9,8 @@ public abstract class BasePrepatcher
 
     public string Name { get; private set; }
 
-    public BasePrepatcher() : this(null) { }
+    public BasePrepatcher()
+        : this(null) { }
 
     public BasePrepatcher(string? name)
     {

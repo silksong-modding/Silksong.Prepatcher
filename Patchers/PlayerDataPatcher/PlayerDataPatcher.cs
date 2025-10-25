@@ -1,13 +1,13 @@
-﻿using Mono.Cecil;
-using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
-using MonoMod.Utils;
-using SilksongPrepatcher.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
+using MonoMod.Utils;
+using SilksongPrepatcher.Utils;
 
 namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
 
@@ -16,16 +16,17 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
 ///
 /// This allows for easy hooking, allowing mods to effectively change the value of a PD field without affecting the save data,
 /// and allowing mods to monitor when a field value is changed.
-/// 
+///
 /// Accesses to fields which are not serialized are not patched, as they do not affect the save data.
 /// Mods wanting to affect the value of such fields should do so directly - and this will not affect the save data by definition.
-/// 
+///
 /// Private fields are also not patched - in all cases these are not serialized, and the Get/Set variable funcs as written
 /// fail when given a private field anyway.
 /// </summary>
 public class PlayerDataPatcher : BasePrepatcher
 {
-    private static string CacheFilePath => Path.Combine(SilksongPrepatcher.PatchCacheDir, $"{nameof(PlayerDataPatcher)}_cache.txt");
+    private static string CacheFilePath =>
+        Path.Combine(SilksongPrepatcher.PatchCacheDir, $"{nameof(PlayerDataPatcher)}_cache.txt");
 
     public override void PatchAssembly(AssemblyDefinition asm)
     {
@@ -90,11 +91,13 @@ public class PlayerDataPatcher : BasePrepatcher
         {
             foreach (MethodDefinition method in typeDef.Methods)
             {
-                if (!method.HasBody) continue;
+                if (!method.HasBody)
+                    continue;
 
-                if (method.DeclaringType == ctx.PDType && (
-                    method.Name == "SetupNewPlayerData"
-                    || method.Name.Contains(".ctor")))
+                if (
+                    method.DeclaringType == ctx.PDType
+                    && (method.Name == "SetupNewPlayerData" || method.Name.Contains(".ctor"))
+                )
                 {
                     continue;
                 }
@@ -106,7 +109,6 @@ public class PlayerDataPatcher : BasePrepatcher
                 replaceCounter += replaced;
                 missCounter += missed;
             }
-
         }
 
         sw.Stop();
@@ -116,7 +118,12 @@ public class PlayerDataPatcher : BasePrepatcher
         cache.Serialize(CacheFilePath);
     }
 
-    private bool PatchMethod(MethodDefinition method, PatchingContext ctx, out int replaced, out int missed)
+    private bool PatchMethod(
+        MethodDefinition method,
+        PatchingContext ctx,
+        out int replaced,
+        out int missed
+    )
     {
         Dictionary<TypeReference, VariableReference> addedVariables = new();
         replaced = 0;
@@ -139,16 +146,25 @@ public class PlayerDataPatcher : BasePrepatcher
             return addedVariables[importedType];
         }
 
-        for (int instructionIndex = il.Body.Instructions.Count - 1; instructionIndex >= 0; instructionIndex--)
+        for (
+            int instructionIndex = il.Body.Instructions.Count - 1;
+            instructionIndex >= 0;
+            instructionIndex--
+        )
         {
             Instruction instr = il.Body.Instructions[instructionIndex];
 
-            if (instr.Operand is not FieldReference field
+            if (
+                instr.Operand is not FieldReference field
                 || field.DeclaringType.FullName != ctx.PDType.FullName
                 // Private/nonserialized attribute access shouldn't be routed through the event
                 || field.Resolve().IsPrivate
-                || field.Resolve().CustomAttributes.Any(ca => ca.AttributeType.FullName == "System.NonSerializedAttribute")
-                )
+                || field
+                    .Resolve()
+                    .CustomAttributes.Any(ca =>
+                        ca.AttributeType.FullName == "System.NonSerializedAttribute"
+                    )
+            )
             {
                 continue;
             }
@@ -158,13 +174,20 @@ public class PlayerDataPatcher : BasePrepatcher
                 // Currently: [..., PlayerData] ->(Ldfld) [..., Value]
                 // Should become: [..., PlayerData] ->(Ldstr) [..., PlayerData, FieldName] ->(Callvirt) [..., Value]
 
-                ctx.GetGetMethod(field.FieldType, out MethodReference accessMethod, out PatchingContext.AccessMethodType accessType);
-                OpCode callOpCode = accessType == PatchingContext.AccessMethodType.Default ? OpCodes.Callvirt : OpCodes.Call;
+                ctx.GetGetMethod(
+                    field.FieldType,
+                    out MethodReference accessMethod,
+                    out PatchingContext.AccessMethodType accessType
+                );
+                OpCode callOpCode =
+                    accessType == PatchingContext.AccessMethodType.Default
+                        ? OpCodes.Callvirt
+                        : OpCodes.Call;
 
                 Instruction[] newInstrs =
                 [
                     il.Create(OpCodes.Ldstr, field.Name),
-                    il.Create(callOpCode, accessMethod)
+                    il.Create(callOpCode, accessMethod),
                 ];
 
                 // Copy over the new instruction so br* style instructions still work
@@ -184,8 +207,15 @@ public class PlayerDataPatcher : BasePrepatcher
                 // ->(Ldloc) [..., PlayerData, FieldName, NewValue]
                 // ->(Callvirt) [...]
 
-                ctx.GetSetMethod(field.FieldType, out MethodReference accessMethod, out PatchingContext.AccessMethodType accessType);
-                OpCode callOpCode = accessType == PatchingContext.AccessMethodType.Default ? OpCodes.Callvirt : OpCodes.Call;
+                ctx.GetSetMethod(
+                    field.FieldType,
+                    out MethodReference accessMethod,
+                    out PatchingContext.AccessMethodType accessType
+                );
+                OpCode callOpCode =
+                    accessType == PatchingContext.AccessMethodType.Default
+                        ? OpCodes.Callvirt
+                        : OpCodes.Call;
 
                 VariableReference local = GetOrAddLocal(field.FieldType);
 
@@ -210,8 +240,10 @@ public class PlayerDataPatcher : BasePrepatcher
             else if (instr.OpCode == OpCodes.Ldflda)
             {
                 bool patched = TryPatchRefAccess(il, instr, method, ctx, GetOrAddLocal);
-                if (patched) replaced++;
-                else missed++;
+                if (patched)
+                    replaced++;
+                else
+                    missed++;
             }
         }
 
@@ -221,18 +253,24 @@ public class PlayerDataPatcher : BasePrepatcher
     }
 
     private bool TryPatchRefAccess(
-        ILProcessor il, Instruction instr, MethodDefinition method, PatchingContext ctx, Func<TypeReference, VariableReference> getOrAddLocal)
+        ILProcessor il,
+        Instruction instr,
+        MethodDefinition method,
+        PatchingContext ctx,
+        Func<TypeReference, VariableReference> getOrAddLocal
+    )
     {
         // Currently this only operates on the five calls in GameManager.TimePassesElsewhere to CheckReadyToLeave(ref ...)
 
         Instruction nextInstr = instr.Next;
 
-        if (nextInstr.OpCode == OpCodes.Call
+        if (
+            nextInstr.OpCode == OpCodes.Call
             && nextInstr.Operand is MethodReference methodReference
             && methodReference.ReturnType.FullName == "System.Void"
             && methodReference.Parameters.Count == 1
             && instr.Operand is FieldReference field
-            )
+        )
         {
             // Current:
             // [..., PlayerData]
@@ -255,14 +293,29 @@ public class PlayerDataPatcher : BasePrepatcher
 
             VariableReference local = getOrAddLocal(field.FieldType);
 
-            ctx.GetGetMethod(field.FieldType, out MethodReference getAccess, out PatchingContext.AccessMethodType getAccessType);
-            OpCode getAccessOpcode = getAccessType == PatchingContext.AccessMethodType.Default ? OpCodes.Callvirt : OpCodes.Call;
-            ctx.GetSetMethod(field.FieldType, out MethodReference setAccess, out PatchingContext.AccessMethodType setAccessType);
-            OpCode setAccessOpcode = setAccessType == PatchingContext.AccessMethodType.Default ? OpCodes.Callvirt : OpCodes.Call;
+            ctx.GetGetMethod(
+                field.FieldType,
+                out MethodReference getAccess,
+                out PatchingContext.AccessMethodType getAccessType
+            );
+            OpCode getAccessOpcode =
+                getAccessType == PatchingContext.AccessMethodType.Default
+                    ? OpCodes.Callvirt
+                    : OpCodes.Call;
+            ctx.GetSetMethod(
+                field.FieldType,
+                out MethodReference setAccess,
+                out PatchingContext.AccessMethodType setAccessType
+            );
+            OpCode setAccessOpcode =
+                setAccessType == PatchingContext.AccessMethodType.Default
+                    ? OpCodes.Callvirt
+                    : OpCodes.Call;
 
-            Instruction[] newInstructions = [
+            Instruction[] newInstructions =
+            [
                 il.Create(OpCodes.Dup),
-                il.Create(OpCodes.Ldstr, field.Name),  // Modify existing instr here
+                il.Create(OpCodes.Ldstr, field.Name), // Modify existing instr here
                 il.Create(getAccessOpcode, getAccess),
                 il.Create(OpCodes.Stloc, local),
                 il.Create(OpCodes.Ldloca, local),
@@ -270,7 +323,7 @@ public class PlayerDataPatcher : BasePrepatcher
                 il.Create(OpCodes.Ldstr, field.Name),
                 il.Create(OpCodes.Ldloc, local),
                 il.Create(setAccessOpcode, setAccess),
-                ];
+            ];
 
             il.InsertBefore(instr, newInstructions[0]);
             instr.OpCode = newInstructions[1].OpCode;

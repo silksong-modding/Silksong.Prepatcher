@@ -1,11 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <!-- 
   Imports silksong path properties only if present in order to allow CI builds. The file should be gitignored.
   If you are checking out from git and need to create a new one, you can use `dotnet new silksongpath` to generate one.
   -->
   <Import Condition="Exists('SilksongPath.props')" Project="SilksongPath.props" />
-
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
@@ -16,33 +14,51 @@
     <!--Allow access of private members at runtime.-->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
   <PropertyGroup>
     <!--These properties will control the generated plugin info. Version is also used by various parts of the build system.-->
     <AssemblyTitle>SilksongPrepatcher</AssemblyTitle>
     <Version>0.1.0</Version>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.4.21" />
   </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="CSharpier.MsBuild" Version="1.1.2" PrivateAssets="all" />
+  </ItemGroup>
   <Target Name="CopyMod" AfterTargets="PostBuildEvent">
     <ItemGroup>
       <Binaries Include="$(TargetPath)" />
       <Binaries Include="$(TargetDir)/$(TargetName).pdb" />
     </ItemGroup>
-
-    <Copy SourceFiles="@(Binaries)" DestinationFolder="$(SilksongFolder)/BepInEx/patchers/$(TargetName)" Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')" />
-
+    <Copy
+      SourceFiles="@(Binaries)"
+      DestinationFolder="$(SilksongFolder)/BepInEx/patchers/$(TargetName)"
+      Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
+    />
     <PropertyGroup>
       <ExportFolder>bin/Publish</ExportFolder>
     </PropertyGroup>
-
     <RemoveDir Directories="$(IntermediateOutputPath)/archive" />
     <MakeDir Directories="$(ExportFolder)" />
     <Copy SourceFiles="@(Binaries)" DestinationFolder="$(IntermediateOutputPath)/archive" />
-    <ZipDirectory SourceDirectory="$(IntermediateOutputPath)/archive" DestinationFile="$(ExportFolder)/$(TargetName).zip" Overwrite="True" />
+    <ZipDirectory
+      SourceDirectory="$(IntermediateOutputPath)/archive"
+      DestinationFile="$(ExportFolder)/$(TargetName).zip"
+      Overwrite="True"
+    />
+  </Target>
+  <Target Name="Husky" BeforeTargets="Restore;CollectPackageReferences" Condition="'$(HUSKY)' != 0">
+    <Exec
+      Command="dotnet tool restore"
+      StandardOutputImportance="Low"
+      StandardErrorImportance="High"
+    />
+    <Exec
+      Command="dotnet husky install"
+      StandardOutputImportance="Low"
+      StandardErrorImportance="High"
+      WorkingDirectory="."
+    />
   </Target>
 </Project>

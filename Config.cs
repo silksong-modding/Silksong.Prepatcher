@@ -1,6 +1,6 @@
-﻿using BepInEx;
+﻿using System.IO;
+using BepInEx;
 using BepInEx.Configuration;
-using System.IO;
 
 namespace SilksongPrepatcher;
 
@@ -25,7 +25,12 @@ public class Config
         {
             if (_instance is null)
             {
-                _instance = new Config(new ConfigFile(Path.Combine(Paths.ConfigPath, "org.silksong-modding.prepatcher.cfg"), false));
+                _instance = new Config(
+                    new ConfigFile(
+                        Path.Combine(Paths.ConfigPath, "org.silksong-modding.prepatcher.cfg"),
+                        false
+                    )
+                );
             }
 
             return _instance;

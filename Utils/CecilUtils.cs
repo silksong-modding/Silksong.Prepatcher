@@ -1,5 +1,5 @@
-﻿using Mono.Cecil;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Mono.Cecil;
 
 namespace SilksongPrepatcher.Utils;
 
@@ -8,9 +8,13 @@ public static class CecilUtils
     /// <summary>
     /// Yield the type, and all nested types
     /// </summary>
-    public static IEnumerable<TypeDefinition> GetTypesRecursive(TypeDefinition type, bool includeSelf = true)
+    public static IEnumerable<TypeDefinition> GetTypesRecursive(
+        TypeDefinition type,
+        bool includeSelf = true
+    )
     {
-        if (includeSelf) yield return type;
+        if (includeSelf)
+            yield return type;
 
         foreach (TypeDefinition nested in type.NestedTypes)
         {

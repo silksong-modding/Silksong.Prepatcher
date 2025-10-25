@@ -1,8 +1,8 @@
-﻿using Mono.Cecil;
+﻿using System;
+using System.Reflection;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-using System;
-using System.Reflection;
 
 namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
 
@@ -22,13 +22,16 @@ public class VariableExtensionsPatcher : BasePrepatcher
         MethodDefinition? getVariablesMethod = null;
         foreach (MethodDefinition method in type.Methods)
         {
-            if (method.Name != "GetVariables") continue;
-            GenericInstanceType? secondParamType = method.Parameters[1].ParameterType as GenericInstanceType;
+            if (method.Name != "GetVariables")
+                continue;
+            GenericInstanceType? secondParamType =
+                method.Parameters[1].ParameterType as GenericInstanceType;
 
-            if (secondParamType == null ||
-                secondParamType.Name != "Func`2" ||
-                secondParamType.Resolve().FullName != "System.Func`2"
-                )
+            if (
+                secondParamType == null
+                || secondParamType.Name != "Func`2"
+                || secondParamType.Resolve().FullName != "System.Func`2"
+            )
             {
                 continue;
             }
@@ -39,9 +42,12 @@ public class VariableExtensionsPatcher : BasePrepatcher
         MethodDefinition? getVariableMethod = null;
         foreach (MethodDefinition method in type.Methods)
         {
-            if (method.Name != "GetVariable") continue;
-            if (method.Parameters.Count != 2) continue;
-            if (!method.ContainsGenericParameter) continue;
+            if (method.Name != "GetVariable")
+                continue;
+            if (method.Parameters.Count != 2)
+                continue;
+            if (!method.ContainsGenericParameter)
+                continue;
             getVariableMethod = method;
             break;
         }
@@ -52,7 +58,11 @@ public class VariableExtensionsPatcher : BasePrepatcher
         }
     }
 
-    private void PatchGetVariablesMethod(MethodDefinition method, MethodDefinition getVariableMethod, ModuleDefinition mod)
+    private void PatchGetVariablesMethod(
+        MethodDefinition method,
+        MethodDefinition getVariableMethod,
+        ModuleDefinition mod
+    )
     {
         Log.LogInfo($"Found method {method.FullName}");
 
@@ -66,10 +76,12 @@ public class VariableExtensionsPatcher : BasePrepatcher
         Instruction? callGetValue = null;
         foreach (Instruction instr in method.Body.Instructions)
         {
-            if (instr.OpCode == OpCodes.Callvirt &&
-                instr.Operand is MethodReference methodRef &&
-                methodRef.Name == "GetValue" &&
-                methodRef.DeclaringType.FullName == "System.Reflection.FieldInfo")
+            if (
+                instr.OpCode == OpCodes.Callvirt
+                && instr.Operand is MethodReference methodRef
+                && methodRef.Name == "GetValue"
+                && methodRef.DeclaringType.FullName == "System.Reflection.FieldInfo"
+            )
             {
                 callGetValue = instr;
                 break;
@@ -81,12 +93,13 @@ public class VariableExtensionsPatcher : BasePrepatcher
             throw new Exception("Could not find call to FieldInfo::GetValue.");
         }
 
-        Instruction[] patchZone = [
+        Instruction[] patchZone =
+        [
             callGetValue.Previous.Previous,
             callGetValue.Previous,
             callGetValue,
             callGetValue.Next,
-            ];
+        ];
 
         // validate
         if (!patchZone[0].OpCode.Name.ToLower().StartsWith("ldloc"))
@@ -125,7 +138,9 @@ public class VariableExtensionsPatcher : BasePrepatcher
         patchZone[0].Operand = tmpOperand;
 
         // Replace the third with a call to FieldInfo.get_Name
-        MethodInfo fieldNameMethodInfo = typeof(FieldInfo).GetProperty(nameof(FieldInfo.Name)).GetGetMethod();
+        MethodInfo fieldNameMethodInfo = typeof(FieldInfo)
+            .GetProperty(nameof(FieldInfo.Name))
+            .GetGetMethod();
         MethodReference fieldNameMethodRef = mod.ImportReference(fieldNameMethodInfo);
 
         patchZone[2].OpCode = OpCodes.Callvirt; // Technically not needed
