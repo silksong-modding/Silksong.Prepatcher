@@ -62,7 +62,6 @@ internal class PatchingContext
 
     public MethodReference CreateGenericGetMethod(TypeReference fieldType)
     {
-        // TODO - cache this?
         MethodReference genericMethodRefImported = MainModule.ImportReference(GenericGetMethod);
         GenericInstanceMethod genericInstanceMethod = new(genericMethodRefImported);
         genericInstanceMethod.GenericArguments.Add(fieldType);
@@ -86,7 +85,6 @@ internal class PatchingContext
 
     public MethodReference CreateGenericSetMethod(TypeReference fieldType)
     {
-        // TODO - cache this?
         MethodReference genericMethodRefImported = MainModule.ImportReference(GenericSetMethod);
         GenericInstanceMethod genericInstanceMethod = new(genericMethodRefImported);
         genericInstanceMethod.GenericArguments.Add(fieldType);

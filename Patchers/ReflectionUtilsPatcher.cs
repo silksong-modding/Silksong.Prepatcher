@@ -1,5 +1,4 @@
-﻿using BepInEx.Logging;
-using Mono.Cecil;
+﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using System;
@@ -21,8 +20,6 @@ namespace SilksongPrepatcher.Patchers;
 /// </summary>
 public class ReflectionUtilsPatcher : BasePrepatcher
 {
-    private static readonly ManualLogSource Log = Logger.CreateLogSource($"Silksong.Prepatcher.{nameof(ReflectionUtilsPatcher)}");
-
     public override void PatchAssembly(AssemblyDefinition assembly)
     {
         TypeDefinition typeDef = assembly.MainModule.Types.FirstOrDefault(t => t.Name == "ReflectionUtils");
@@ -44,7 +41,7 @@ public class ReflectionUtilsPatcher : BasePrepatcher
         InjectTypeLookup(assembly.MainModule, typeDef, cctor);
     }
 
-    private static void InjectTypeLookup(ModuleDefinition module, TypeDefinition typeDef, MethodDefinition cctor)
+    private void InjectTypeLookup(ModuleDefinition module, TypeDefinition typeDef, MethodDefinition cctor)
     {
         const string typeName = "TMProOldOld.TextAlignmentOptions";
         const string fixedTypeName = "TMProOld.TextAlignmentOptions, Assembly-CSharp";

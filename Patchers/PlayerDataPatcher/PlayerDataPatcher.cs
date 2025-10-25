@@ -1,6 +1,4 @@
-﻿using BepInEx;
-using BepInEx.Logging;
-using Mono.Cecil;
+﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using MonoMod.Utils;
@@ -15,8 +13,6 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
 
 public class PlayerDataPatcher : BasePrepatcher
 {
-    private static readonly ManualLogSource Log = Logger.CreateLogSource($"SilksongPrepatcher.PlayerDataPatcher");
-
     private static string CacheFilePath => Path.Combine(SilksongPrepatcher.PatchCacheDir, $"{nameof(PlayerDataPatcher)}_cache.txt");
 
     public override void PatchAssembly(AssemblyDefinition asm)
@@ -34,7 +30,7 @@ public class PlayerDataPatcher : BasePrepatcher
         }
     }
 
-    private static void ReplaceFieldAccessesFromCache(PatchingContext ctx, PatchedMethodCache cache)
+    private void ReplaceFieldAccessesFromCache(PatchingContext ctx, PatchedMethodCache cache)
     {
         int replaceCounter = 0;
         int missCounter = 0;
@@ -69,7 +65,7 @@ public class PlayerDataPatcher : BasePrepatcher
     /// <summary>
     /// Replace field accesses with calls to Get/Set variable funcs
     /// </summary>
-    private static void ReplaceFieldAccesses(PatchingContext ctx)
+    private void ReplaceFieldAccesses(PatchingContext ctx)
     {
         int replaceCounter = 0;
         int missCounter = 0;
@@ -108,7 +104,7 @@ public class PlayerDataPatcher : BasePrepatcher
         cache.Serialize(CacheFilePath);
     }
 
-    private static bool PatchMethod(MethodDefinition method, PatchingContext ctx, out int replaced, out int missed)
+    private bool PatchMethod(MethodDefinition method, PatchingContext ctx, out int replaced, out int missed)
     {
         Dictionary<TypeReference, VariableReference> addedVariables = new();
         replaced = 0;
@@ -212,7 +208,7 @@ public class PlayerDataPatcher : BasePrepatcher
         return replaced > 0;
     }
 
-    private static bool TryPatchRefAccess(
+    private bool TryPatchRefAccess(
         ILProcessor il, Instruction instr, MethodDefinition method, PatchingContext ctx, Func<TypeReference, VariableReference> getOrAddLocal)
     {
         // Currently this only operates on the five calls in GameManager.TimePassesElsewhere to CheckReadyToLeave(ref ...)

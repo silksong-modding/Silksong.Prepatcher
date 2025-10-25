@@ -1,5 +1,4 @@
-﻿using BepInEx.Logging;
-using Mono.Cecil;
+﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using System;
@@ -9,8 +8,6 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
 
 public class VariableExtensionsPatcher : BasePrepatcher
 {
-    private static readonly ManualLogSource Log = Logger.CreateLogSource($"SilksongPrepatcher.PlayerDataPatcher");
-
     public override void PatchAssembly(AssemblyDefinition asm)
     {
         ModuleDefinition module = asm.MainModule;
@@ -51,7 +48,7 @@ public class VariableExtensionsPatcher : BasePrepatcher
         }
     }
 
-    private static void PatchGetVariablesMethod(MethodDefinition method, MethodDefinition getVariableMethod, ModuleDefinition mod)
+    private void PatchGetVariablesMethod(MethodDefinition method, MethodDefinition getVariableMethod, ModuleDefinition mod)
     {
         Log.LogInfo($"Found method {method.FullName}");
 

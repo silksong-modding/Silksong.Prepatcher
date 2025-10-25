@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,6 +9,8 @@ namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
 
 public class PatchedMethodCache
 {
+    private static readonly ManualLogSource Log = Logger.CreateLogSource(nameof(PatchedMethodCache));
+
     // Dictionary [typeRef.FullName] -> List<methodRef.FullName>
     public Dictionary<string, List<string>> PatchedMethods { get; set; } = new();
 
@@ -51,6 +54,7 @@ public class PatchedMethodCache
     {
         if (!File.Exists(filePath))
         {
+            Log.LogDebug($"Failed to deserialize: no method cache found in cache dir.");
             return null;
         }
 
@@ -62,7 +66,7 @@ public class PatchedMethodCache
             string[] lines = File.ReadAllLines(filePath);
 
             string? key = null;
-            List<string> current = new();
+            List<string> current = [];
 
             foreach (string line in lines)
             {
@@ -75,7 +79,7 @@ public class PatchedMethodCache
                     }
                     else
                     {
-                        // Easiest just to return null if it fails metadata validation
+                        Log.LogDebug("Failed to deserialize: metadata mismatch.");
                         return null;
                     }
                 }
@@ -96,13 +100,15 @@ public class PatchedMethodCache
                 }
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Log.LogError("Failed to deserialize:\n" + ex);
             return null;
         }
         
         if (!validated)
         {
+            Log.LogInfo("Failed to deserialize: no metadata found.");
             return null;
         }
 

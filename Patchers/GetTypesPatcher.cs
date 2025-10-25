@@ -1,5 +1,4 @@
-﻿using BepInEx.Logging;
-using Mono.Cecil;
+﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using Mono.Collections.Generic;
@@ -12,8 +11,6 @@ namespace SilksongPrepatcher.Patchers;
 
 public class GetTypesPatcher : BasePrepatcher
 {
-    private static readonly ManualLogSource Log = Logger.CreateLogSource($"SilksongPrepatcher.{nameof(GetTypesPatcher)}");
-
     public override void PatchAssembly (AssemblyDefinition asm)
     {
         MethodInfo newMethodInfo = typeof(AssemblyExtensions).GetMethod(nameof(AssemblyExtensions.GetTypesSafelyIgnoreMMHook), [typeof(Assembly)]);

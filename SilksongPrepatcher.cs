@@ -11,7 +11,7 @@ namespace SilksongPrepatcher;
 
 public static class SilksongPrepatcher
 {
-    private static readonly ManualLogSource Log = Logger.CreateLogSource(nameof(SilksongPrepatcher));
+    private static ManualLogSource Log { get; } = Logger.CreateLogSource(nameof(SilksongPrepatcher));
 
     private static readonly List<(string assemblyName, BasePrepatcher patcher)> patcherData = new()
     {
