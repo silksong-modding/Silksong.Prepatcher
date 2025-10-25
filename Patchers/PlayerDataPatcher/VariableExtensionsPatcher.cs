@@ -6,6 +6,10 @@ using System.Reflection;
 
 namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
 
+/// <summary>
+/// Patch the VariableExtensions.GetVariables method so that all reflected field accesses instead are routed through
+/// VariableExtensions.GetVariable.
+/// </summary>
 public class VariableExtensionsPatcher : BasePrepatcher
 {
     public override void PatchAssembly(AssemblyDefinition asm)

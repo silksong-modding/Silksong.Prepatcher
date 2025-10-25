@@ -9,6 +9,13 @@ using SilksongPrepatcher.Utils;
 
 namespace SilksongPrepatcher.Patchers;
 
+/// <summary>
+/// Patch all calls to Assembly.GetTypes so they skip MMHOOK assemblies, and in general don't throw if some types fail to load.
+/// 
+/// If some of the action data in an FSM prefab is corrupted or incorrect, Playmaker will search all assemblies for all types
+/// to try to find the correct type. Certainly the MMHOOK assemblies don't contain the correct type, and the 
+/// MMHOOK_Assembly-CSharp assembly is quite large and it is undesirable to load the whole assembly.
+/// </summary>
 public class GetTypesPatcher : BasePrepatcher
 {
     public override void PatchAssembly (AssemblyDefinition asm)
@@ -34,7 +41,7 @@ public class GetTypesPatcher : BasePrepatcher
                             instruction.OpCode = OpCodes.Call;
                             instruction.Operand = newMethodRef;
 
-                            Log.LogInfo($"Patching {type.Name}:{method.Name}");
+                            Log.LogInfo($"Patching {type.FullName} : {method.FullName}");
                         }
                     }
                 }

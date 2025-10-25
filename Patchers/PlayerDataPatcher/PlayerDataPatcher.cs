@@ -11,6 +11,18 @@ using System.Linq;
 
 namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
 
+/// <summary>
+/// Replace all field accesses (Get/Set) on an instance of PlayerData with calls to Get/Set variable funcs.
+///
+/// This allows for easy hooking, allowing mods to effectively change the value of a PD field without affecting the save data,
+/// and allowing mods to monitor when a field value is changed.
+/// 
+/// Accesses to fields which are not serialized are not patched, as they do not affect the save data.
+/// Mods wanting to affect the value of such fields should do so directly - and this will not affect the save data by definition.
+/// 
+/// Private fields are also not patched - in all cases these are not serialized, and the Get/Set variable funcs as written
+/// fail when given a private field anyway.
+/// </summary>
 public class PlayerDataPatcher : BasePrepatcher
 {
     private static string CacheFilePath => Path.Combine(SilksongPrepatcher.PatchCacheDir, $"{nameof(PlayerDataPatcher)}_cache.txt");
