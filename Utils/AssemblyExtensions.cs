@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 
 namespace SilksongPrepatcher.Utils;
 
@@ -29,5 +29,4 @@ public static class AssemblyExtensions
 
         return asm.GetTypesSafely();
     }
-
 }

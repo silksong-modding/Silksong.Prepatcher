@@ -1,9 +1,9 @@
-﻿using BepInEx;
-using Mono.Cecil;
-using Mono.Cecil.Rocks;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using BepInEx;
+using Mono.Cecil;
+using Mono.Cecil.Rocks;
 
 namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
 
@@ -17,25 +17,40 @@ internal class PatchingContext
         MainModule = asm.MainModule;
         PDType = MainModule.Types.First(t => t.Name == "PlayerData");
 
-        DefaultGetMethods = PDType.Methods
-            .Where(m => m.Name.StartsWith("Get") && DefaultAccessMethods.Contains(m.Name.Substring(3)))
+        DefaultGetMethods = PDType
+            .Methods.Where(m =>
+                m.Name.StartsWith("Get") && DefaultAccessMethods.Contains(m.Name.Substring(3))
+            )
             .ToDictionary(m => m.ReturnType);
 
-        DefaultSetMethods = PDType.Methods
-            .Where(m => m.Name.StartsWith("Set") && DefaultAccessMethods.Contains(m.Name.Substring(3)) && m.Parameters.Count == 2)
+        DefaultSetMethods = PDType
+            .Methods.Where(m =>
+                m.Name.StartsWith("Set")
+                && DefaultAccessMethods.Contains(m.Name.Substring(3))
+                && m.Parameters.Count == 2
+            )
             .ToDictionary(m => m.Parameters[1].ParameterType);
 
-
-        AssemblyDefinition sharedUtilsAsm = AssemblyDefinition.ReadAssembly(Path.Combine(Paths.ManagedPath, "TeamCherry.SharedUtils.dll"));
-        TypeDefinition variableExt = sharedUtilsAsm.MainModule.GetType("TeamCherry.SharedUtils.VariableExtensions");
-        GenericGetMethod = variableExt.GetMethods().First(
-            x => x.Name == "GetVariable" && x.ContainsGenericParameter && x.Parameters.Count == 2);
-        GenericSetMethod = variableExt.GetMethods().First(
-            x => x.Name == "SetVariable" && x.ContainsGenericParameter && x.Parameters.Count == 3);
+        AssemblyDefinition sharedUtilsAsm = AssemblyDefinition.ReadAssembly(
+            Path.Combine(Paths.ManagedPath, "TeamCherry.SharedUtils.dll")
+        );
+        TypeDefinition variableExt = sharedUtilsAsm.MainModule.GetType(
+            "TeamCherry.SharedUtils.VariableExtensions"
+        );
+        GenericGetMethod = variableExt
+            .GetMethods()
+            .First(x =>
+                x.Name == "GetVariable" && x.ContainsGenericParameter && x.Parameters.Count == 2
+            );
+        GenericSetMethod = variableExt
+            .GetMethods()
+            .First(x =>
+                x.Name == "SetVariable" && x.ContainsGenericParameter && x.Parameters.Count == 3
+            );
     }
 
     public ModuleDefinition MainModule { get; }
-    public TypeDefinition PDType { get; } 
+    public TypeDefinition PDType { get; }
 
     public MethodDefinition GenericGetMethod { get; }
     public MethodDefinition GenericSetMethod { get; }
@@ -69,7 +84,11 @@ internal class PatchingContext
         return genericInstanceMethod;
     }
 
-    public void GetGetMethod(TypeReference fieldType, out MethodReference accessMethod, out AccessMethodType accessType)
+    public void GetGetMethod(
+        TypeReference fieldType,
+        out MethodReference accessMethod,
+        out AccessMethodType accessType
+    )
     {
         if (DefaultGetMethods.TryGetValue(fieldType, out MethodDefinition method))
         {
@@ -92,8 +111,11 @@ internal class PatchingContext
         return genericInstanceMethod;
     }
 
-
-    public void GetSetMethod(TypeReference fieldType, out MethodReference accessMethod, out AccessMethodType accessType)
+    public void GetSetMethod(
+        TypeReference fieldType,
+        out MethodReference accessMethod,
+        out AccessMethodType accessType
+    )
     {
         if (DefaultSetMethods.TryGetValue(fieldType, out MethodDefinition method))
         {

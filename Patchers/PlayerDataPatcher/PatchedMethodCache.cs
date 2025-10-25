@@ -1,28 +1,33 @@
-﻿using BepInEx;
-using BepInEx.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using BepInEx;
+using BepInEx.Logging;
 
 namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
 
 public class PatchedMethodCache
 {
-    private static readonly ManualLogSource Log = Logger.CreateLogSource(nameof(PatchedMethodCache));
+    private static readonly ManualLogSource Log = Logger.CreateLogSource(
+        nameof(PatchedMethodCache)
+    );
 
     // Dictionary [typeRef.FullName] -> List<methodRef.FullName>
     public Dictionary<string, List<string>> PatchedMethods { get; set; } = new();
 
     public void Add(string typeName, string methodName)
     {
-        if (!PatchedMethods.TryGetValue(typeName, out List<string> methods)) methods = PatchedMethods[typeName] = new();
+        if (!PatchedMethods.TryGetValue(typeName, out List<string> methods))
+            methods = PatchedMethods[typeName] = new();
         methods.Add(methodName);
     }
 
     public static string GetMetadataString()
     {
-        string thisAssemblyVersion = typeof(PatchedMethodCache).Assembly.GetName().Version.ToString();
+        string thisAssemblyVersion = typeof(PatchedMethodCache)
+            .Assembly.GetName()
+            .Version.ToString();
 
         string assemblyCsharpPath = Path.Combine(Paths.ManagedPath, AssemblyNames.Assembly_CSharp);
         DateTime assemblyCSharpModTime = File.GetLastWriteTimeUtc(assemblyCsharpPath);
@@ -61,7 +66,7 @@ public class PatchedMethodCache
         bool validated = false;
         PatchedMethodCache ret = new();
 
-        try 
+        try
         {
             string[] lines = File.ReadAllLines(filePath);
 
@@ -93,7 +98,8 @@ public class PatchedMethodCache
                 }
                 else if (line.StartsWith("E "))
                 {
-                    if (key == null) throw new Exception("Key null on write");
+                    if (key == null)
+                        throw new Exception("Key null on write");
                     ret.PatchedMethods[key] = current;
                     key = null;
                     current = new();
@@ -105,7 +111,7 @@ public class PatchedMethodCache
             Log.LogError("Failed to deserialize:\n" + ex);
             return null;
         }
-        
+
         if (!validated)
         {
             Log.LogInfo("Failed to deserialize: no metadata found.");
@@ -115,4 +121,3 @@ public class PatchedMethodCache
         return ret;
     }
 }
-

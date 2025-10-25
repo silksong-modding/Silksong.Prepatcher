@@ -1,20 +1,20 @@
-﻿using Mono.Cecil;
-using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 
 namespace SilksongPrepatcher.Patchers;
 
 /// <summary>
 /// Patch ReflectionUtils to not slow the game when entering certain scenes
-/// 
+///
 /// In particular, some FSMs, such as Mapper NPC - Dialogue in Bone_04, have references to the
 /// nonexistent TMProOldOld.TextAlignmentOptions class, and attempting to load this type
 /// via reflection is slowing down the game.
-/// 
+///
 /// We insert the correct type into the typeLookup on the ReflectionUtils class
 /// so that this slowdown doesn't happen.
 /// </summary>
@@ -22,7 +22,9 @@ public class ReflectionUtilsPatcher : BasePrepatcher
 {
     public override void PatchAssembly(AssemblyDefinition assembly)
     {
-        TypeDefinition typeDef = assembly.MainModule.Types.FirstOrDefault(t => t.Name == "ReflectionUtils");
+        TypeDefinition typeDef = assembly.MainModule.Types.FirstOrDefault(t =>
+            t.Name == "ReflectionUtils"
+        );
 
         if (typeDef == null)
         {
@@ -30,7 +32,9 @@ public class ReflectionUtilsPatcher : BasePrepatcher
             return;
         }
 
-        MethodDefinition cctor = typeDef.Methods.FirstOrDefault(m => m.IsStatic && m.IsConstructor && m.IsSpecialName);
+        MethodDefinition cctor = typeDef.Methods.FirstOrDefault(m =>
+            m.IsStatic && m.IsConstructor && m.IsSpecialName
+        );
 
         if (cctor == null)
         {
@@ -41,12 +45,18 @@ public class ReflectionUtilsPatcher : BasePrepatcher
         InjectTypeLookup(assembly.MainModule, typeDef, cctor);
     }
 
-    private void InjectTypeLookup(ModuleDefinition module, TypeDefinition typeDef, MethodDefinition cctor)
+    private void InjectTypeLookup(
+        ModuleDefinition module,
+        TypeDefinition typeDef,
+        MethodDefinition cctor
+    )
     {
         const string typeName = "TMProOldOld.TextAlignmentOptions";
         const string fixedTypeName = "TMProOld.TextAlignmentOptions, Assembly-CSharp";
 
-        FieldDefinition typeLookupField = typeDef.Fields.FirstOrDefault(f => f.Name == "typeLookup" && f.IsStatic);
+        FieldDefinition typeLookupField = typeDef.Fields.FirstOrDefault(f =>
+            f.Name == "typeLookup" && f.IsStatic
+        );
 
         if (typeLookupField == null)
         {
@@ -54,7 +64,9 @@ public class ReflectionUtilsPatcher : BasePrepatcher
         }
 
         // Get necessary references
-        MethodReference getTypeMethod = module.ImportReference(typeof(Type).GetMethod(nameof(Type.GetType), [typeof(string)]));
+        MethodReference getTypeMethod = module.ImportReference(
+            typeof(Type).GetMethod(nameof(Type.GetType), [typeof(string)])
+        );
 
         Type dictRuntimeType = typeof(Dictionary<,>).MakeGenericType(typeof(string), typeof(Type));
         MethodInfo setItemMethodInfo = dictRuntimeType.GetMethod("set_Item");
@@ -67,7 +79,8 @@ public class ReflectionUtilsPatcher : BasePrepatcher
         if (ret.OpCode != OpCodes.Ret)
         {
             ret = cctor.Body.Instructions.Reverse().FirstOrDefault(i => i.OpCode == OpCodes.Ret);
-            if (ret == null) return;
+            if (ret == null)
+                return;
         }
 
         il.InsertBefore(ret, il.Create(OpCodes.Ldsfld, typeLookupField));
