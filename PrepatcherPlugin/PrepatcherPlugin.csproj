@@ -23,6 +23,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/silksong-modding/PrepatcherPlugin</RepositoryUrl>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
+    <ThunderstoreDir>$(RepoRoot)/thunderstore</ThunderstoreDir>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
@@ -53,20 +54,9 @@
       DestinationFolder="$(SilksongFolder)/BepInEx/plugins/silksong-modding-$(AssemblyTitle)"
       Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
     />
-  </Target>
-  <Target Name="CopyToThunderstore" DependsOnTargets="Build">
-    <PropertyGroup>
-      <ThunderstoreDir>$(RepoRoot)/thunderstore</ThunderstoreDir>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <Binaries Include="$(TargetPath)" />
-      <Binaries Include="$(TargetDir)$(TargetName).pdb" />
-    </ItemGroup>
-
     <Copy
       SourceFiles="@(Binaries)"
-      DestinationFolder="$(ThunderstoreDir)/tmp"
+      DestinationFolder="$(ThunderstoreDir)/tmp/plugins"
     />
   </Target>
   <Target Name="Husky" BeforeTargets="Restore;CollectPackageReferences" Condition="'$(HUSKY)' != 0">

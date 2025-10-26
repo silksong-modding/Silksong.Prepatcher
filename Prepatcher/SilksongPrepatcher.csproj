@@ -14,11 +14,7 @@
     <!--Allow access of private members at runtime.-->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
-  </PropertyGroup>
-  <PropertyGroup>
-    <!--These properties will control the generated plugin info. Version is also used by various parts of the build system.-->
-    <AssemblyTitle>SilksongPrepatcher</AssemblyTitle>
-    <Version>0.1.0</Version>
+    <ThunderstoreDir>$(RepoRoot)/thunderstore</ThunderstoreDir>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
@@ -27,6 +23,11 @@
   <ItemGroup>
     <PackageReference Include="CSharpier.MsBuild" Version="1.1.2" PrivateAssets="all" />
   </ItemGroup>
+  <Target Name="CleanThunderstore" BeforeTargets="PreBuildEvent">
+    <RemoveDir Directories="$(ThunderstoreDir)/tmp" />
+    <RemoveDir Directories="$(ThunderstoreDir)/dist" />
+    <MakeDir Directories="$(ThunderstoreDir)/tmp" />
+  </Target>
   <Target Name="CopyMod" AfterTargets="PostBuildEvent">
     <ItemGroup>
       <Binaries Include="$(TargetPath)" />
@@ -34,29 +35,9 @@
     </ItemGroup>
     <Copy
       SourceFiles="@(Binaries)"
-      DestinationFolder="$(SilksongFolder)/BepInEx/patchers/$(TargetName)"
+      DestinationFolder="$(SilksongFolder)/BepInEx/patchers/silksong-modding-$(AssemblyTitle)"
       Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
     />
-    <PropertyGroup>
-      <ExportFolder>bin/Publish</ExportFolder>
-    </PropertyGroup>
-    <RemoveDir Directories="$(IntermediateOutputPath)/archive" />
-    <MakeDir Directories="$(ExportFolder)" />
-    <Copy SourceFiles="@(Binaries)" DestinationFolder="$(IntermediateOutputPath)/archive" />
-    <ZipDirectory
-      SourceDirectory="$(IntermediateOutputPath)/archive"
-      DestinationFile="$(ExportFolder)/$(TargetName).zip"
-      Overwrite="True"
-    />
-  </Target>
-  <Target Name="CopyToThunderstore" DependsOnTargets="Build">
-    <PropertyGroup>
-      <ThunderstoreDir>$(RepoRoot)/thunderstore</ThunderstoreDir>
-    </PropertyGroup>
-    <ItemGroup>
-      <Binaries Include="$(TargetPath)" />
-      <Binaries Include="$(TargetDir)$(TargetName).pdb" />
-    </ItemGroup>
     <Copy SourceFiles="@(Binaries)" DestinationFolder="$(ThunderstoreDir)/tmp/patchers" />
   </Target>
   <Target Name="Husky" BeforeTargets="Restore;CollectPackageReferences" Condition="'$(HUSKY)' != 0">
