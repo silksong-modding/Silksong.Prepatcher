@@ -8,9 +8,13 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <RestoreAdditionalProjectSources>
-      https://nuget.bepinex.dev/v3/index.json
-    </RestoreAdditionalProjectSources>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
+    <AnalysisMode>recommended</AnalysisMode>
+    <!-- Ignore warning about processor architecture mismatch with PlayMaker ConditionalExpression -->
+    <NoWarn>$(NoWarn);MSB3270</NoWarn>
+    <RestorePackagesWithLockFile>True</RestorePackagesWithLockFile>
+    <!-- CI environment variable is automatically set by GitHub actions -->
+    <RestoreLockedMode Condition="'$(CI)' == 'true'">True</RestoreLockedMode>
     <!--Allow access of private members at runtime.-->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
