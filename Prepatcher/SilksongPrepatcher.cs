@@ -27,7 +27,7 @@ public static class SilksongPrepatcher
     {
         get
         {
-            string path = Path.Combine(Paths.CachePath, "SilksongPrepatcher");
+            string path = Path.Combine(Paths.CachePath, nameof(SilksongPrepatcher));
             Directory.CreateDirectory(path);
             return path;
         }
