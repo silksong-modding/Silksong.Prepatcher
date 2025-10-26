@@ -23,11 +23,6 @@
   <ItemGroup>
     <PackageReference Include="CSharpier.MsBuild" Version="1.1.2" PrivateAssets="all" />
   </ItemGroup>
-  <Target Name="CleanThunderstore" BeforeTargets="PreBuildEvent">
-    <RemoveDir Directories="$(ThunderstoreDir)/tmp" />
-    <RemoveDir Directories="$(ThunderstoreDir)/dist" />
-    <MakeDir Directories="$(ThunderstoreDir)/tmp" />
-  </Target>
   <Target Name="CopyMod" AfterTargets="PostBuildEvent">
     <ItemGroup>
       <Binaries Include="$(TargetPath)" />
@@ -38,6 +33,8 @@
       DestinationFolder="$(SilksongFolder)/BepInEx/patchers/silksong-modding-$(AssemblyTitle)"
       Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
     />
+    <RemoveDir Directories="$(ThunderstoreDir)/tmp/patchers;$(ThunderstoreDir)/dist" />
+    <MakeDir Directories="$(ThunderstoreDir)/tmp/patchers" />
     <Copy SourceFiles="@(Binaries)" DestinationFolder="$(ThunderstoreDir)/tmp/patchers" />
   </Target>
   <Target Name="Husky" BeforeTargets="Restore;CollectPackageReferences" Condition="'$(HUSKY)' != 0">

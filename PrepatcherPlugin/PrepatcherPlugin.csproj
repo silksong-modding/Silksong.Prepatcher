@@ -54,6 +54,8 @@
       DestinationFolder="$(SilksongFolder)/BepInEx/plugins/silksong-modding-$(AssemblyTitle)"
       Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
     />
+    <RemoveDir Directories="$(ThunderstoreDir)/tmp/plugins;$(ThunderstoreDir)/dist" />
+    <MakeDir Directories="$(ThunderstoreDir)/tmp/plugins" />
     <Copy
       SourceFiles="@(Binaries)"
       DestinationFolder="$(ThunderstoreDir)/tmp/plugins"
