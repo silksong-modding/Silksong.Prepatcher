@@ -8,7 +8,7 @@ public partial class PrepatcherPlugin : BaseUnityPlugin
 {
     private void Awake()
     {
-        Hooks.Init();
+        // We only init hooks when the variable events are subscribed to
 
         // Put your initialization logic here
         Logger.LogInfo($"Plugin {Name} ({Id}) has loaded!");

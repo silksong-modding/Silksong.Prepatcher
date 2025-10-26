@@ -12,17 +12,42 @@ public static class PlayerDataVariableEvents<T>
 
     public delegate T PlayerDataVariableHandler(PlayerData pd, string fieldName, T current);
 
-    public static event PlayerDataVariableHandler? OnGetVariable;
-    public static event PlayerDataVariableHandler? OnSetVariable;
+    private static PlayerDataVariableHandler? _onGetVariable;
+    private static PlayerDataVariableHandler? _onSetVariable;
+
+    public static event PlayerDataVariableHandler? OnGetVariable
+    {
+        add
+        {
+            Hooks.Init();
+            _onGetVariable += value;
+        }
+        remove
+        {
+            _onGetVariable -= value;
+        }
+    }
+    public static event PlayerDataVariableHandler? OnSetVariable
+    {
+        add
+        {
+            Hooks.Init();
+            _onSetVariable += value;
+        }
+        remove
+        {
+            _onSetVariable -= value;
+        }
+    }
 
     internal static T ModifyGetVariable(PlayerData pd, string fieldName, T current)
     {
-        if (OnGetVariable == null)
+        if (_onGetVariable == null)
         {
             return current;
         }
 
-        foreach (PlayerDataVariableHandler handler in OnGetVariable.GetInvocationList().Cast<PlayerDataVariableHandler>())
+        foreach (PlayerDataVariableHandler handler in _onGetVariable.GetInvocationList().Cast<PlayerDataVariableHandler>())
         {
             try
             {
@@ -44,12 +69,12 @@ public static class PlayerDataVariableEvents<T>
 
     internal static T ModifySetVariable(PlayerData pd, string fieldName, T current)
     {
-        if (OnSetVariable == null)
+        if (_onSetVariable == null)
         {
             return current;
         }
 
-        foreach (PlayerDataVariableHandler handler in OnSetVariable.GetInvocationList())
+        foreach (PlayerDataVariableHandler handler in _onSetVariable.GetInvocationList())
         {
             try
             {
