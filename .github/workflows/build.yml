@@ -1,4 +1,5 @@
-name: Build
+name: Build Prepatcher
+# TODO - convert to a workflow that builds the prepatcher and the plugin
 
 on:
   push:
@@ -17,16 +18,19 @@ jobs:
         uses: actions/setup-dotnet@v5
 
       - name: Restore dependencies
+        working-directory: Prepatcher
         run: dotnet restore
 
       - name: Build
+        working-directory: Prepatcher
         run: dotnet build -c Release
 
       - name: Unzip build output
+        working-directory: Prepatcher
         run: unzip -o bin/Publish/SilksongPrepatcher.zip -d bin/Publish/ArtifactFiles
         
       - name: Prepare artifacts for release
         uses: actions/upload-artifact@v4
         with:
           name: SilksongPrepatcher
-          path: bin/Publish/ArtifactFiles
+          path: Prepatcher/bin/Publish/ArtifactFiles

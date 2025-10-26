@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36518.9 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilksongPrepatcher", "SilksongPrepatcher.csproj", "{1A88B970-3BF3-A406-146D-3D67BACBDA89}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilksongPrepatcher", "Prepatcher/SilksongPrepatcher.csproj", "{1A88B970-3BF3-A406-146D-3D67BACBDA89}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

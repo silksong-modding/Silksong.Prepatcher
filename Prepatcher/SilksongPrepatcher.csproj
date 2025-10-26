@@ -58,7 +58,7 @@
       Command="dotnet husky install"
       StandardOutputImportance="Low"
       StandardErrorImportance="High"
-      WorkingDirectory="."
+      WorkingDirectory="$(SolutionDir)"
     />
   </Target>
 </Project>
