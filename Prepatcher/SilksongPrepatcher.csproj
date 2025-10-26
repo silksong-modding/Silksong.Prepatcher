@@ -35,7 +35,7 @@
     </ItemGroup>
     <Copy
       SourceFiles="@(Binaries)"
-      DestinationFolder="$(SilksongFolder)/BepInEx/patchers/silksong-modding-$(AssemblyTitle)"
+      DestinationFolder="$(SilksongFolder)/BepInEx/patchers/silksong-modding-$(TargetName)"
       Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
     />
     <RemoveDir Directories="$(ThunderstoreDir)/tmp/patchers;$(ThunderstoreDir)/dist" />
