@@ -50,7 +50,7 @@ jobs:
         echo Version is $VERSION
         echo "version=$VERSION" >> $GITHUB_OUTPUT
     - name: Pack Thunderstore
-      run: dotnet tcli build --config-path Thunderstore/thunderstore.toml --package-name SilksongPrepatcher --package-version ${{ steps.version.outputs.version }}
+      run: dotnet tcli build --config-path thunderstore/thunderstore.toml --package-name SilksongPrepatcher --package-version ${{ steps.version.outputs.version }}
     - name: Upload thunderstore artifact
       uses: actions/upload-artifact@v5
       with:
