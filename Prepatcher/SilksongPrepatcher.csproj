@@ -13,6 +13,7 @@
     </RestoreAdditionalProjectSources>
     <!--Allow access of private members at runtime.-->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
   </PropertyGroup>
   <PropertyGroup>
     <!--These properties will control the generated plugin info. Version is also used by various parts of the build system.-->
@@ -48,6 +49,16 @@
       Overwrite="True"
     />
   </Target>
+  <Target Name="CopyToThunderstore" DependsOnTargets="Build">
+    <PropertyGroup>
+      <ThunderstoreDir>$(RepoRoot)/thunderstore</ThunderstoreDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <Binaries Include="$(TargetPath)" />
+      <Binaries Include="$(TargetDir)$(TargetName).pdb" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Binaries)" DestinationFolder="$(ThunderstoreDir)/tmp/patchers" />
+  </Target>
   <Target Name="Husky" BeforeTargets="Restore;CollectPackageReferences" Condition="'$(HUSKY)' != 0">
     <Exec
       Command="dotnet tool restore"
@@ -58,7 +69,7 @@
       Command="dotnet husky install"
       StandardOutputImportance="Low"
       StandardErrorImportance="High"
-      WorkingDirectory=".."
+      WorkingDirectory="$(RepoRoot)"
     />
   </Target>
 </Project>

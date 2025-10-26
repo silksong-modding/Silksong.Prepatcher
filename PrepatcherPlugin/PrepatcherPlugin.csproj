@@ -22,6 +22,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/silksong-modding/PrepatcherPlugin</RepositoryUrl>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
@@ -42,37 +43,35 @@
 
     />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Remove="thunderstore/tmp;thunderstore/dist" />
-    <None Include="README.md" Pack="True" PackagePath="README.md" />
-    <None Include="thunderstore/icon.png" Pack="True" PackagePath="icon.png" />
-  </ItemGroup>
   <Target Name="CopyAndPackageMod" AfterTargets="PostBuildEvent">
     <ItemGroup>
       <Binaries Include="$(TargetPath)" />
       <Binaries Include="$(TargetDir)/$(TargetName).pdb" />
     </ItemGroup>
-    <PropertyGroup>
-      <ThunderstoreDir>$(ProjectDir)/thunderstore</ThunderstoreDir>
-    </PropertyGroup>
     <Copy
       SourceFiles="@(Binaries)"
       DestinationFolder="$(SilksongFolder)/BepInEx/plugins/silksong-modding-$(AssemblyTitle)"
       Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
     />
-    <RemoveDir Directories="$(ThunderstoreDir)/tmp;$(ThunderstoreDir)/dist" />
-    <MakeDir Directories="$(ThunderstoreDir)/tmp" />
-    <Copy SourceFiles="@(Binaries)" DestinationFolder="$(ThunderstoreDir)/tmp" />
-    <Exec Command="dotnet tool restore" />
-    <Exec
-      Command="dotnet tcli build --config-path &quot;$(ThunderstoreDir)/thunderstore.toml&quot; --package-name &quot;$(AssemblyTitle)&quot; --package-version $(Version)"
-      StandardOutputImportance="High"
-      StandardErrorImportance="High"
+  </Target>
+  <Target Name="CopyToThunderstore" DependsOnTargets="Build">
+    <PropertyGroup>
+      <ThunderstoreDir>$(RepoRoot)/thunderstore</ThunderstoreDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Binaries Include="$(TargetPath)" />
+      <Binaries Include="$(TargetDir)$(TargetName).pdb" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(Binaries)"
+      DestinationFolder="$(ThunderstoreDir)/tmp"
     />
   </Target>
   <Target Name="Husky" BeforeTargets="Restore;CollectPackageReferences" Condition="'$(HUSKY)' != 0">
     <Exec Command="dotnet tool restore" StandardOutputImportance="Low" StandardErrorImportance="High" />
-    <Exec Command="dotnet husky install" StandardOutputImportance="Low" StandardErrorImportance="High" WorkingDirectory=".." />
+    <Exec Command="dotnet husky install" StandardOutputImportance="Low" StandardErrorImportance="High" WorkingDirectory="$(RepoRoot)" />
   </Target>
 
 </Project>
