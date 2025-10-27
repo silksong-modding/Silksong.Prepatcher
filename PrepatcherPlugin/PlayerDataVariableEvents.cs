@@ -125,7 +125,7 @@ public static class PlayerDataVariableEvents<T>
 public static class PlayerDataVariableEvents
 {
     /// <summary>
-    /// Equivalent to <see cref="PlayerDataVariableEvents{Boolean}.OnGetVariable"/>.
+    /// Equivalent to <see cref="PlayerDataVariableEvents{Boolean}.OnGetVariable"/> with type parameter bool.
     /// </summary>
     public static event PlayerDataVariableEvents<bool>.PlayerDataVariableHandler? OnGetBool
     {
@@ -133,7 +133,7 @@ public static class PlayerDataVariableEvents
         remove => PlayerDataVariableEvents<bool>.OnGetVariable -= value;
     }
     /// <summary>
-    /// Equivalent to <see cref="PlayerDataVariableEvents{Boolean}.OnSetVariable"/>.
+    /// Equivalent to <see cref="PlayerDataVariableEvents{Boolean}.OnSetVariable"/> with type parameter bool.
     /// </summary>
     public static event PlayerDataVariableEvents<bool>.PlayerDataVariableHandler? OnSetBool
     {
@@ -142,7 +142,7 @@ public static class PlayerDataVariableEvents
     }
 
     /// <summary>
-    /// Equivalent to <see cref="PlayerDataVariableEvents{Int32}.OnGetVariable"/>.
+    /// Equivalent to <see cref="PlayerDataVariableEvents{Int32}.OnGetVariable"/> with type parameter int.
     /// </summary>
     public static event PlayerDataVariableEvents<int>.PlayerDataVariableHandler? OnGetInt
     {
@@ -150,7 +150,7 @@ public static class PlayerDataVariableEvents
         remove => PlayerDataVariableEvents<int>.OnGetVariable -= value;
     }
     /// <summary>
-    /// Equivalent to <see cref="PlayerDataVariableEvents{Int32}.OnSetVariable"/>.
+    /// Equivalent to <see cref="PlayerDataVariableEvents{Int32}.OnSetVariable"/> with type parameter int.
     /// </summary>
     public static event PlayerDataVariableEvents<int>.PlayerDataVariableHandler? OnSetInt
     {
@@ -159,7 +159,7 @@ public static class PlayerDataVariableEvents
     }
 
     /// <summary>
-    /// Equivalent to <see cref="PlayerDataVariableEvents{String}.OnGetVariable"/>.
+    /// Equivalent to <see cref="PlayerDataVariableEvents{String}.OnGetVariable"/> with type parameter string.
     /// </summary>
     public static event PlayerDataVariableEvents<string>.PlayerDataVariableHandler? OnGetString
     {
@@ -167,7 +167,7 @@ public static class PlayerDataVariableEvents
         remove => PlayerDataVariableEvents<string>.OnGetVariable -= value;
     }
     /// <summary>
-    /// Equivalent to <see cref="PlayerDataVariableEvents{String}.OnSetVariable"/>.
+    /// Equivalent to <see cref="PlayerDataVariableEvents{String}.OnSetVariable"/> with type parameter string.
     /// </summary>
     public static event PlayerDataVariableEvents<string>.PlayerDataVariableHandler? OnSetString
     {
@@ -176,7 +176,7 @@ public static class PlayerDataVariableEvents
     }
 
     /// <summary>
-    /// Equivalent to <see cref="PlayerDataVariableEvents{Single}.OnGetVariable"/>.
+    /// Equivalent to <see cref="PlayerDataVariableEvents{Single}.OnGetVariable"/> with type parameter float.
     /// </summary>
     public static event PlayerDataVariableEvents<float>.PlayerDataVariableHandler? OnGetFloat
     {
@@ -184,7 +184,7 @@ public static class PlayerDataVariableEvents
         remove => PlayerDataVariableEvents<float>.OnGetVariable -= value;
     }
     /// <summary>
-    /// Equivalent to <see cref="PlayerDataVariableEvents{Single}.OnSetVariable"/>.
+    /// Equivalent to <see cref="PlayerDataVariableEvents{Single}.OnSetVariable"/> with type parameter float.
     /// </summary>
     public static event PlayerDataVariableEvents<float>.PlayerDataVariableHandler? OnSetFloat
     {
@@ -193,7 +193,7 @@ public static class PlayerDataVariableEvents
     }
 
     /// <summary>
-    /// Equivalent to <see cref="PlayerDataVariableEvents{Vector3}.OnGetVariable"/>.
+    /// Equivalent to <see cref="PlayerDataVariableEvents{Vector3}.OnGetVariable"/> with type parameter Vector3.
     /// </summary>
     public static event PlayerDataVariableEvents<Vector3>.PlayerDataVariableHandler? OnGetVector3
     {
@@ -201,7 +201,7 @@ public static class PlayerDataVariableEvents
         remove => PlayerDataVariableEvents<Vector3>.OnGetVariable -= value;
     }
     /// <summary>
-    /// Equivalent to <see cref="PlayerDataVariableEvents{Vector3}.OnSetVariable"/>.
+    /// Equivalent to <see cref="PlayerDataVariableEvents{Vector3}.OnSetVariable"/> with type parameter Vector3.
     /// </summary>
     public static event PlayerDataVariableEvents<Vector3>.PlayerDataVariableHandler? OnSetVector3
     {
