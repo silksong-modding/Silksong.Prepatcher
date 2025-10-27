@@ -12,6 +12,7 @@
     <AnalysisMode>recommended</AnalysisMode>
     <!-- Ignore warning about processor architecture mismatch with PlayMaker ConditionalExpression -->
     <NoWarn>$(NoWarn);MSB3270</NoWarn>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RestorePackagesWithLockFile>True</RestorePackagesWithLockFile>
     <!-- CI environment variable is automatically set by GitHub actions -->
     <RestoreLockedMode Condition="'$(CI)' == 'true'">True</RestoreLockedMode>
