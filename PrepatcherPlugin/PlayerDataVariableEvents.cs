@@ -87,7 +87,8 @@ public static class PlayerDataVariableEvents<T>
     }
 
     internal static object? ModifyGetVariableNonGeneric(PlayerData pd, string fieldName, object current) 
-    { 
+    {
+        // (T)current should not throw in normal circumstances - if current is not castable to T then GetVariable<T> should have returned null.
         return ModifyGetVariable(pd, fieldName, (T)current);
     }
 
@@ -115,7 +116,19 @@ public static class PlayerDataVariableEvents<T>
 
     internal static object? ModifySetVariableNonGeneric(PlayerData pd, string fieldName, object current)
     {
-        return ModifySetVariable(pd, fieldName, (T)current);
+        // In unmodded, SetVariable<string>("geo", 6) would fail silently because the type of the value
+        // being set does not match the type declared. In this case we should match that behaviour.
+        T casted;
+        try
+        {
+            casted = (T)current;
+        }
+        catch (Exception)
+        {
+            Log.LogInfo($"Failed to cast fieldname {fieldName}, object {current} to type {typeof(T)}");
+            return current;
+        }
+        return ModifySetVariable(pd, fieldName, casted);
     }
 }
 

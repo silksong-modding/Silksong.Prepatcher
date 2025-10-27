@@ -16,72 +16,70 @@ namespace PrepatcherPlugin;
 /// </summary>
 internal static class Hooks
 {
-    private static readonly List<Hook> hooks = [];
+    private static List<Hook>? hooks = null;
 
     internal static void Init()
     {
         // Make Init idempotent
-        if (hooks.Count > 0) return;
+        if (hooks is not null) return;
 
-        // Bool
-        hooks.Add(new(
-            typeof(PlayerData).GetMethod(nameof(PlayerData.GetBool)),
-            ModifyGetBool
-        ));
-        hooks.Add(new(
-            typeof(PlayerData).GetMethod(nameof(PlayerData.SetBool)),
-            ModifySetBool
-        ));
-
-        // Int
-        hooks.Add(new(
-            typeof(PlayerData).GetMethod(nameof(PlayerData.GetInt)),
-            ModifyGetInt
-        ));
-        hooks.Add(new(
-            typeof(PlayerData).GetMethod(nameof(PlayerData.SetInt)),
-            ModifySetInt
-        ));
-
-        // String
-        hooks.Add(new(
-            typeof(PlayerData).GetMethod(nameof(PlayerData.GetString)),
-            ModifyGetString
-        ));
-        hooks.Add(new(
-            typeof(PlayerData).GetMethod(nameof(PlayerData.SetString)),
-            ModifySetString
-        ));
-
-        // Float
-        hooks.Add(new(
-            typeof(PlayerData).GetMethod(nameof(PlayerData.GetFloat)),
-            ModifyGetFloat
-        ));
-        hooks.Add(new(
-            typeof(PlayerData).GetMethod(nameof(PlayerData.SetFloat)),
-            ModifySetFloat
-        ));
-
-        // Vector3
-        hooks.Add(new(
-            typeof(PlayerData).GetMethod(nameof(PlayerData.GetVector3)),
-            ModifyGetVector3
-        ));
-        hooks.Add(new(
-            typeof(PlayerData).GetMethod(nameof(PlayerData.SetVector3)),
-            ModifySetVector3
-        ));
-
-        // Generic
-        hooks.Add(new(
-            typeof(VariableExtensions).GetMethods().First(m => m.Name == nameof(VariableExtensions.GetVariable) && !m.IsGenericMethod),
-            ModifyGetVariable
-        ));
-        hooks.Add(new(
-            typeof(VariableExtensions).GetMethods().First(m => m.Name == nameof(VariableExtensions.SetVariable) && !m.IsGenericMethod),
-            ModifySetVariable
-        ));
+        hooks =
+        [
+            // Bool
+            new(
+                typeof(PlayerData).GetMethodOrThrow(nameof(PlayerData.GetBool)),
+                ModifyGetBool
+            ),
+            new(
+                typeof(PlayerData).GetMethodOrThrow(nameof(PlayerData.SetBool)),
+                ModifySetBool
+            ),
+            // Int
+            new(
+                typeof(PlayerData).GetMethodOrThrow(nameof(PlayerData.GetInt)),
+                ModifyGetInt
+            ),
+            new(
+                typeof(PlayerData).GetMethodOrThrow(nameof(PlayerData.SetInt)),
+                ModifySetInt
+            ),
+            // String
+            new(
+                typeof(PlayerData).GetMethodOrThrow(nameof(PlayerData.GetString)),
+                ModifyGetString
+            ),
+            new(
+                typeof(PlayerData).GetMethodOrThrow(nameof(PlayerData.SetString)),
+                ModifySetString
+            ),
+            // Float
+            new(
+                typeof(PlayerData).GetMethodOrThrow(nameof(PlayerData.GetFloat)),
+                ModifyGetFloat
+            ),
+            new(
+                typeof(PlayerData).GetMethodOrThrow(nameof(PlayerData.SetFloat)),
+                ModifySetFloat
+            ),
+            // Vector3
+            new(
+                typeof(PlayerData).GetMethodOrThrow(nameof(PlayerData.GetVector3)),
+                ModifyGetVector3
+            ),
+            new(
+                typeof(PlayerData).GetMethodOrThrow(nameof(PlayerData.SetVector3)),
+                ModifySetVector3
+            ),
+            // Generic
+            new(
+                typeof(VariableExtensions).GetMethods().First(m => m.Name == nameof(VariableExtensions.GetVariable) && !m.IsGenericMethod),
+                ModifyGetVariable
+            ),
+            new(
+                typeof(VariableExtensions).GetMethods().First(m => m.Name == nameof(VariableExtensions.SetVariable) && !m.IsGenericMethod),
+                ModifySetVariable
+            ),
+        ];
     }
 
 
@@ -176,7 +174,7 @@ internal static class Hooks
                 .GetMethod(nameof(PlayerDataVariableEvents<object>.ModifyGetVariableNonGeneric), flags);
             func = (NonGenericVariableHandler)
                 Delegate.CreateDelegate(typeof(NonGenericVariableHandler), mi);
-            GenericGetMethodCache.Add(type, func);
+            GenericGetMethodCache[type] = func;
         }
 
         object modified = func(pd, fieldName, current);
@@ -198,7 +196,7 @@ internal static class Hooks
             MethodInfo mi = genericEventsType
                 .GetMethod(nameof(PlayerDataVariableEvents<object>.ModifySetVariableNonGeneric), flags);
             func = (NonGenericVariableHandler)Delegate.CreateDelegate(typeof(NonGenericVariableHandler), mi);
-            GenericSetMethodCache.Add(type, func);
+            GenericSetMethodCache[type] = func;
         }
 
         object modified = func(pd, fieldName, value);
