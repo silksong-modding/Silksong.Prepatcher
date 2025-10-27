@@ -44,6 +44,7 @@
     <ItemGroup>
       <Binaries Include="$(TargetPath)" />
       <Binaries Include="$(TargetDir)/$(TargetName).pdb" />
+      <Binaries Include="$(TargetDir)/$(TargetName).xml" />
     </ItemGroup>
     <Copy SourceFiles="@(Binaries)" DestinationFolder="$(SilksongFolder)/BepInEx/plugins/silksong-modding-$(AssemblyTitle)" Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')" />
     <RemoveDir Directories="$(ThunderstoreDir)/tmp/plugins;$(ThunderstoreDir)/dist" />
