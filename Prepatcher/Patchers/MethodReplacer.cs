@@ -14,7 +14,7 @@ namespace SilksongPrepatcher.Patchers;
 /// The new method should be visible to the patched assembly, and should be static.
 /// </summary>
 public class MethodReplacer(Func<MethodReference, bool> predicate, MethodInfo newMethodInfo)
-    : BasePrepatcher
+    : BasePrepatcher($"{nameof(MethodReplacer)} -> {newMethodInfo.Name}")
 {
     public override void PatchAssembly(AssemblyDefinition asm)
     {

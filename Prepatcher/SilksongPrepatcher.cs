@@ -20,7 +20,7 @@ public static class SilksongPrepatcher
     private static List<(string assemblyName, BasePrepatcher patcher)> GetPatcherData()
     {
         BasePrepatcher GetTypesPatcher = new MethodReplacer(
-            mr => mr.DeclaringType.Name == "Assembly" && mr.Name == nameof(Assembly.GetTypes),
+            mr => mr.DeclaringType.Name == nameof(Assembly) && mr.Name == nameof(Assembly.GetTypes),
             typeof(AssemblyExtensions).GetMethod(
                 nameof(AssemblyExtensions.GetTypesSafelyIgnoreMMHook),
                 [typeof(Assembly)]
@@ -29,7 +29,7 @@ public static class SilksongPrepatcher
         BasePrepatcher NewtonsoftUnityPatcher = new MethodReplacer(
             mr => mr.DeclaringType.Name == nameof(Type) && mr.Name == nameof(Type.IsAssignableFrom),
             typeof(AssemblyExtensions).GetMethod(
-                nameof(AssemblyExtensions.TypeAssignableFrom),
+                nameof(AssemblyExtensions.TypeAssignableFromSafe),
                 [typeof(Type), typeof(Type)]
             )
         );

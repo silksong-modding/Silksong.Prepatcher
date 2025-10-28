@@ -30,7 +30,7 @@ public static class AssemblyExtensions
         return asm.GetTypesSafely();
     }
 
-    public static bool TypeAssignableFrom(Type self, Type other)
+    public static bool TypeAssignableFromSafe(Type self, Type other)
     {
         try
         {

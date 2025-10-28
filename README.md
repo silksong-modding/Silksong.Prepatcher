@@ -4,11 +4,17 @@ Prepatcher with general purpose assembly modifications for Hollow Knight: Silkso
 
 ### Modifications
 
-* Replace certain calls to GetTypes with calls to a safe method.
+* Replace certain calls to Assembly.GetTypes with calls to a safe method.
 In particular, the new method will not throw when types that are not loadable
 are present in an assembly, and will ignore MMHOOK_ assemblies (which may contain
 many types, none of which are of interest to functions defined in base game
 assemblies).
+
+* Replace certain calls to Type.IsAssignableFrom with calls to a safe method.
+For some reason, in certain circumstances types will be loadable by
+GetTypes and non-null, but will throw an error when the argument of
+Type.IsAssignableFrom. This is only an issue in some cases when mods are missing
+soft dependencies.
 
 * Route PlayerData accesses through Get/Set variable funcs.
 This has been done so that mods can more easily monitor when the game gets/sets
