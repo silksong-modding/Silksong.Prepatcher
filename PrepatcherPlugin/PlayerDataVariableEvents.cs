@@ -89,7 +89,18 @@ public static class PlayerDataVariableEvents<T>
     internal static object? ModifyGetVariableNonGeneric(PlayerData pd, string fieldName, object current) 
     {
         // (T)current should not throw in normal circumstances - if current is not castable to T then GetVariable<T> should have returned null.
-        return ModifyGetVariable(pd, fieldName, (T)current);
+        // That said we guard the cast for safety.
+        T casted;
+        try
+        {
+            casted = (T)current;
+        }
+        catch (Exception)
+        {
+            Log.LogWarning($"Failed to cast fieldname {fieldName}, object {current} to type {typeof(T)} in {nameof(ModifySetVariableNonGeneric)}");
+            casted = default!;
+        }
+        return ModifyGetVariable(pd, fieldName, casted);
     }
 
     internal static T ModifySetVariable(PlayerData pd, string fieldName, T current)
@@ -125,7 +136,7 @@ public static class PlayerDataVariableEvents<T>
         }
         catch (Exception)
         {
-            Log.LogWarning($"Failed to cast fieldname {fieldName}, object {current} to type {typeof(T)}");
+            Log.LogWarning($"Failed to cast fieldname {fieldName}, object {current} to type {typeof(T)} in {nameof(ModifySetVariableNonGeneric)}");
             return current;
         }
         return ModifySetVariable(pd, fieldName, casted);
