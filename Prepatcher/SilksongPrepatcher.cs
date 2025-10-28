@@ -51,12 +51,5 @@ public static class SilksongPrepatcher
         {
             patcher.PatchAssembly(assembly);
         }
-
-        if (Config.Instance.WritePatchedAssemblies.Value)
-        {
-            assembly.MainModule.Write(
-                Path.Combine(PatchCacheDir, $"{nameof(SilksongPrepatcher)}_{assemblyName}")
-            );
-        }
     }
 }

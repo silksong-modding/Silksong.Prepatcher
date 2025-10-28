@@ -36,7 +36,7 @@ public static class PlayerDataVariableEvents<T>
     {
         add
         {
-            Hooks.Init();
+            Hooks.EnsureHooked();
             _onGetVariable += value;
         }
         remove
@@ -55,7 +55,7 @@ public static class PlayerDataVariableEvents<T>
     {
         add
         {
-            Hooks.Init();
+            Hooks.EnsureHooked();
             _onSetVariable += value;
         }
         remove
@@ -125,7 +125,7 @@ public static class PlayerDataVariableEvents<T>
         }
         catch (Exception)
         {
-            Log.LogInfo($"Failed to cast fieldname {fieldName}, object {current} to type {typeof(T)}");
+            Log.LogWarning($"Failed to cast fieldname {fieldName}, object {current} to type {typeof(T)}");
             return current;
         }
         return ModifySetVariable(pd, fieldName, casted);

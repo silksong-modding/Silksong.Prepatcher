@@ -5,7 +5,7 @@ namespace PrepatcherPlugin;
 /// <summary>
 /// Plugin for utils associated with the Prepatcher.
 /// </summary>
-[BepInAutoPlugin(id: "io.github.silksong-modding.prepatcherplugin")]
+[BepInAutoPlugin(id: "org.silksong-modding.prepatcher")]
 public partial class PrepatcherPlugin : BaseUnityPlugin
 {
     private void Awake()

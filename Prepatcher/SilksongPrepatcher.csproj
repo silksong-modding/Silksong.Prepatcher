@@ -12,9 +12,6 @@
     <AnalysisMode>recommended</AnalysisMode>
     <!-- Ignore warning about processor architecture mismatch with PlayMaker ConditionalExpression -->
     <NoWarn>$(NoWarn);MSB3270</NoWarn>
-    <RestorePackagesWithLockFile>True</RestorePackagesWithLockFile>
-    <!-- CI environment variable is automatically set by GitHub actions -->
-    <RestoreLockedMode Condition="'$(CI)' == 'true'">True</RestoreLockedMode>
     <!--Allow access of private members at runtime.-->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
@@ -38,7 +35,7 @@
       DestinationFolder="$(SilksongFolder)/BepInEx/patchers/silksong-modding-$(TargetName)"
       Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
     />
-    <RemoveDir Directories="$(ThunderstoreDir)/tmp/patchers;$(ThunderstoreDir)/dist" />
+    <RemoveDir Directories="$(ThunderstoreDir)/tmp/patchers" />
     <MakeDir Directories="$(ThunderstoreDir)/tmp/patchers" />
     <Copy SourceFiles="@(Binaries)" DestinationFolder="$(ThunderstoreDir)/tmp/patchers" />
   </Target>

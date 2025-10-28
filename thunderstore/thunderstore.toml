@@ -2,8 +2,9 @@
 schemaVersion = "0.0.1"
 
 [package]
+name = "SilksongPrepatcher"
 # The name of the team you are publishing as
-namespace = "silksong-modding"
+namespace = "silksong_modding"
 # max 250 characters
 description = "General Preloader Patcher for Silksong Modding."
 
@@ -44,4 +45,4 @@ communities = [ "hollow-knight-silksong" ]
 
 [publish.categories]
 # available categories can be found at https://github.com/thunderstore-io/ecosystem-schema/blob/master/games/data/hollow-knight-silksong.yml
-hollow-knight-silksong = [ "mods", "utility" ]
+hollow-knight-silksong = [ "mods", "libraries", "utility" ]

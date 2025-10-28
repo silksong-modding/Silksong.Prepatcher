@@ -18,7 +18,7 @@ internal static class Hooks
 {
     private static List<Hook>? hooks = null;
 
-    internal static void Init()
+    internal static void EnsureHooked()
     {
         // Make Init idempotent
         if (hooks is not null) return;
@@ -71,6 +71,10 @@ internal static class Hooks
                 ModifySetVector3
             ),
             // Generic
+            // Note that VariableExtensions has two GetVariable methods. A Generic method GetVariable<T>(obj, fieldName) and a non-generic
+            // method GetVariable<obj, fieldName, type). The first is routed through the second, so we hook the second, even though
+            // the first is the one that is called in almost all cases.
+            // The same is true for SetVariable.
             new(
                 typeof(VariableExtensions).GetMethods().First(m => m.Name == nameof(VariableExtensions.GetVariable) && !m.IsGenericMethod),
                 ModifyGetVariable
