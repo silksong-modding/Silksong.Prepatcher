@@ -19,6 +19,11 @@ public static class SilksongPrepatcher
 
     private static List<(string assemblyName, BasePrepatcher patcher)> GetPatcherData()
     {
+        // Patch all calls to Assembly.GetTypes so they skip MMHOOK assemblies, and in general don't throw if some types fail to load.
+        //
+        // If some of the action data in an FSM prefab is corrupted or incorrect, Playmaker will search all assemblies for all types
+        // to try to find the correct type. Certainly the MMHOOK assemblies don't contain the correct type, and the
+        // MMHOOK_Assembly-CSharp assembly is quite large and it is undesirable to load the whole assembly.
         BasePrepatcher GetTypesPatcher = new MethodReplacer(
             mr => mr.DeclaringType.Name == nameof(Assembly) && mr.Name == nameof(Assembly.GetTypes),
             typeof(AssemblyExtensions).GetMethod(
@@ -26,6 +31,11 @@ public static class SilksongPrepatcher
                 [typeof(Assembly)]
             )
         );
+
+        // Patch calls to Type.IsAssignableFrom so that they return false if the second type is not loadable.
+        //
+        // In some cases, such as when T is otherwise loadable but has a nested class with a static field of
+        // type that is not loadable, T will be allowed through GetTypes but will then throw in IsAssignableFrom.
         BasePrepatcher NewtonsoftUnityPatcher = new MethodReplacer(
             mr => mr.DeclaringType.Name == nameof(Type) && mr.Name == nameof(Type.IsAssignableFrom),
             typeof(AssemblyExtensions).GetMethod(
