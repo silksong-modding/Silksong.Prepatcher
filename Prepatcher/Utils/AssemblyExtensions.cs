@@ -29,4 +29,17 @@ public static class AssemblyExtensions
 
         return asm.GetTypesSafely();
     }
+
+    public static bool TypeAssignableFrom(Type self, Type other)
+    {
+        try
+        {
+            return self.IsAssignableFrom(other);
+        }
+        catch
+        {
+            // This only happens if other is not loadable, so we should just eat the error and return false
+            return false;
+        }
+    }
 }

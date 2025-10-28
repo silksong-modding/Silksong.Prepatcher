@@ -21,6 +21,7 @@ public static class SilksongPrepatcher
         (AssemblyNames.PlayMaker, new ReflectionUtilsPatcher()),
         (AssemblyNames.Assembly_CSharp, new PlayerDataPatcher()),
         (AssemblyNames.TeamCherry_SharedUtils, new VariableExtensionsPatcher()),
+        (AssemblyNames.Newtonsoft_Json_UnityConverters, new NewtonsoftUnityPatcher()),
     };
 
     internal static string PatchCacheDir

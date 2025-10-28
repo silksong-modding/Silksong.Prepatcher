@@ -6,4 +6,5 @@ public static class AssemblyNames
     public const string PlayMaker = "PlayMaker.dll";
     public const string TeamCherry_NestedFadeGroup = "TeamCherry.NestedFadeGroup.dll";
     public const string TeamCherry_SharedUtils = "TeamCherry.SharedUtils.dll";
+    public const string Newtonsoft_Json_UnityConverters = "Newtonsoft.Json.UnityConverters.dll";
 }
