@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using BepInEx;
 using BepInEx.Logging;
 using Mono.Cecil;
 using SilksongPrepatcher.Patchers;
 using SilksongPrepatcher.Patchers.PlayerDataPatcher;
+using AssemblyExtensions = SilksongPrepatcher.Utils.AssemblyExtensions;
 
 namespace SilksongPrepatcher;
 
@@ -14,15 +17,36 @@ public static class SilksongPrepatcher
     private static ManualLogSource Log { get; } =
         Logger.CreateLogSource(nameof(SilksongPrepatcher));
 
-    private static readonly List<(string assemblyName, BasePrepatcher patcher)> patcherData = new()
+    private static List<(string assemblyName, BasePrepatcher patcher)> GetPatcherData()
     {
-        (AssemblyNames.TeamCherry_NestedFadeGroup, new GetTypesPatcher()),
-        (AssemblyNames.PlayMaker, new GetTypesPatcher()),
-        (AssemblyNames.PlayMaker, new ReflectionUtilsPatcher()),
-        (AssemblyNames.Assembly_CSharp, new PlayerDataPatcher()),
-        (AssemblyNames.TeamCherry_SharedUtils, new VariableExtensionsPatcher()),
-        (AssemblyNames.Newtonsoft_Json_UnityConverters, new NewtonsoftUnityPatcher()),
-    };
+        BasePrepatcher GetTypesPatcher = new MethodReplacer(
+            mr => mr.DeclaringType.Name == "Assembly" && mr.Name == nameof(Assembly.GetTypes),
+            typeof(AssemblyExtensions).GetMethod(
+                nameof(AssemblyExtensions.GetTypesSafelyIgnoreMMHook),
+                [typeof(Assembly)]
+            )
+        );
+        BasePrepatcher NewtonsoftUnityPatcher = new MethodReplacer(
+            mr => mr.DeclaringType.Name == nameof(Type) && mr.Name == nameof(Type.IsAssignableFrom),
+            typeof(AssemblyExtensions).GetMethod(
+                nameof(AssemblyExtensions.TypeAssignableFrom),
+                [typeof(Type), typeof(Type)]
+            )
+        );
+
+        return new()
+        {
+            (AssemblyNames.TeamCherry_NestedFadeGroup, GetTypesPatcher),
+            (AssemblyNames.PlayMaker, GetTypesPatcher),
+            (AssemblyNames.PlayMaker, new ReflectionUtilsPatcher()),
+            (AssemblyNames.Assembly_CSharp, new PlayerDataPatcher()),
+            (AssemblyNames.TeamCherry_SharedUtils, new VariableExtensionsPatcher()),
+            (AssemblyNames.Newtonsoft_Json_UnityConverters, NewtonsoftUnityPatcher),
+        };
+    }
+
+    private static readonly List<(string assemblyName, BasePrepatcher patcher)> patcherData =
+        GetPatcherData();
 
     internal static string PatchCacheDir
     {
