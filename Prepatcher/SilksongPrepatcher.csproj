@@ -3,21 +3,20 @@
   Imports silksong path properties only if present in order to allow CI builds. The file should be gitignored.
   If you are checking out from git and need to create a new one, you can use `dotnet new silksongpath` to generate one.
   -->
-  <Import Condition="Exists('SilksongPath.props')" Project="SilksongPath.props" />
+  <Import Condition="Exists('../SilksongPath.props')" Project="../SilksongPath.props" />
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <RestoreAdditionalProjectSources>
-      https://nuget.bepinex.dev/v3/index.json
-    </RestoreAdditionalProjectSources>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
+    <AnalysisMode>recommended</AnalysisMode>
+    <!-- Ignore warning about processor architecture mismatch with PlayMaker ConditionalExpression -->
+    <NoWarn>$(NoWarn);MSB3270</NoWarn>
     <!--Allow access of private members at runtime.-->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup>
-    <!--These properties will control the generated plugin info. Version is also used by various parts of the build system.-->
-    <AssemblyTitle>SilksongPrepatcher</AssemblyTitle>
-    <Version>0.1.0</Version>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
+    <ThunderstoreDir>$(RepoRoot)/thunderstore</ThunderstoreDir>
+    <IsPackable>False</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
@@ -33,20 +32,12 @@
     </ItemGroup>
     <Copy
       SourceFiles="@(Binaries)"
-      DestinationFolder="$(SilksongFolder)/BepInEx/patchers/$(TargetName)"
+      DestinationFolder="$(SilksongFolder)/BepInEx/patchers/silksong_modding-$(PackageName)"
       Condition="'$(SilksongFolder)' != '' And Exists('$(SilksongFolder)')"
     />
-    <PropertyGroup>
-      <ExportFolder>bin/Publish</ExportFolder>
-    </PropertyGroup>
-    <RemoveDir Directories="$(IntermediateOutputPath)/archive" />
-    <MakeDir Directories="$(ExportFolder)" />
-    <Copy SourceFiles="@(Binaries)" DestinationFolder="$(IntermediateOutputPath)/archive" />
-    <ZipDirectory
-      SourceDirectory="$(IntermediateOutputPath)/archive"
-      DestinationFile="$(ExportFolder)/$(TargetName).zip"
-      Overwrite="True"
-    />
+    <RemoveDir Directories="$(ThunderstoreDir)/tmp/patchers" />
+    <MakeDir Directories="$(ThunderstoreDir)/tmp/patchers" />
+    <Copy SourceFiles="@(Binaries)" DestinationFolder="$(ThunderstoreDir)/tmp/patchers" />
   </Target>
   <Target Name="Husky" BeforeTargets="Restore;CollectPackageReferences" Condition="'$(HUSKY)' != 0">
     <Exec
@@ -58,7 +49,7 @@
       Command="dotnet husky install"
       StandardOutputImportance="Low"
       StandardErrorImportance="High"
-      WorkingDirectory="."
+      WorkingDirectory="$(RepoRoot)"
     />
   </Target>
 </Project>

@@ -96,7 +96,11 @@ public class PlayerDataPatcher : BasePrepatcher
 
                 if (
                     method.DeclaringType == ctx.PDType
-                    && (method.Name == "SetupNewPlayerData" || method.Name.Contains(".ctor"))
+                    && (
+                        method.Name == "SetupNewPlayerData"
+                        || method.Name == "SetupExistingPlayerData"
+                        || method.Name.Contains(".ctor")
+                    )
                 )
                 {
                     continue;
