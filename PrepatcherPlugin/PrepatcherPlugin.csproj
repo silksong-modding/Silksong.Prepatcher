@@ -23,7 +23,9 @@
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
     <ThunderstoreDir>$(RepoRoot)/thunderstore</ThunderstoreDir>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageId>Silksong.PrepatcherPlugin</PackageId>
     <RepositoryUrl>https://github.com/silksong-modding/Silksong.Prepatcher</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
