@@ -1,9 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
 namespace PrepatcherCodeGenerator;
@@ -27,7 +25,11 @@ public class PlayerDataAccessGenerator : ISourceGenerator
         {
             return false;
         }
-        
+        // We don't provide accessors for NonSerialized fields because they are not patched by the prepatcher
+        if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.Name == nameof(NonSerializedAttribute)))
+        {
+            return false;
+        }
         return true;
     }
 
