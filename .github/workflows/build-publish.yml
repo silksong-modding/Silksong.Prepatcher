@@ -42,6 +42,11 @@ jobs:
       run: dotnet build -c Release --verbosity normal
     - name: Pack
       run: dotnet pack -o nuget/
+    - name: Upload generated PlayerData.cs file
+      uses: actions/upload-artifact@v5
+      with:
+        name: Generated
+        path: CompilerGenerated/PrepatcherCodeGenerator
     - name: Get Version
       id: version
       run: |-
