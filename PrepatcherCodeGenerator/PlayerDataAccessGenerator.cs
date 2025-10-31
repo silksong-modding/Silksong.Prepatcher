@@ -25,11 +25,8 @@ public class PlayerDataAccessGenerator : ISourceGenerator
         {
             return false;
         }
-        // We don't provide accessors for NonSerialized fields because they are not patched by the prepatcher
-        if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.Name == nameof(NonSerializedAttribute)))
-        {
-            return false;
-        }
+        // We would like to skip NonSerialized fields but the symbol.GetAttributes() doesn't seem to include NonSerialized
+
         return true;
     }
 
