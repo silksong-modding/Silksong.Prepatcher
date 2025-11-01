@@ -24,11 +24,10 @@ public class VariableExtensionsPatcher : BasePrepatcher
         {
             if (method.Name != "GetVariables")
                 continue;
-            GenericInstanceType? secondParamType =
-                method.Parameters[1].ParameterType as GenericInstanceType;
 
+            // Check second parameter is a generic instance of Func<T1, T2> - in this case func is Func<string, bool> predicate
             if (
-                secondParamType == null
+                method.Parameters[1].ParameterType is not GenericInstanceType secondParamType
                 || secondParamType.Name != "Func`2"
                 || secondParamType.Resolve().FullName != "System.Func`2"
             )
@@ -59,7 +58,9 @@ public class VariableExtensionsPatcher : BasePrepatcher
     }
 
     private void PatchGetVariablesMethod(
+        // GetVariables<T>(obj, predicate)
         MethodDefinition method,
+        // GetVariable<T>(obj, fieldName) with T unbound
         MethodDefinition getVariableMethod,
         ModuleDefinition mod
     )
@@ -68,6 +69,13 @@ public class VariableExtensionsPatcher : BasePrepatcher
 
         // Replace (T)(object)fieldInfo.GetValue(obj)
         // with VariableExtensions.GetVariable<T>(obj, fieldInfo.Name)
+
+        // Create an instance of getVariableMethod bound to the generic parameter of method
+        GenericParameter genericT = method.GenericParameters[0];
+        GenericInstanceMethod genericGetVariableMethod = new GenericInstanceMethod(
+            getVariableMethod
+        );
+        genericGetVariableMethod.GenericArguments.Add(genericT);
 
         method.Body.SimplifyMacros();
 
@@ -147,8 +155,9 @@ public class VariableExtensionsPatcher : BasePrepatcher
         patchZone[2].Operand = fieldNameMethodRef;
 
         // Replace the fourth with call VariableExtensions.GetVariable<T>
+
         patchZone[3].OpCode = OpCodes.Call;
-        patchZone[3].Operand = getVariableMethod;
+        patchZone[3].Operand = genericGetVariableMethod;
 
         method.Body.OptimizeMacros();
     }
