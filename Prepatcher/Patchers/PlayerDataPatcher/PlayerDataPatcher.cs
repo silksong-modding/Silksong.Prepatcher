@@ -99,6 +99,7 @@ public class PlayerDataPatcher : BasePrepatcher
                     && (
                         method.Name == "SetupNewPlayerData"
                         || method.Name == "SetupExistingPlayerData"
+                        || method.Name == "OnUpdatedVariable"
                         || method.Name.Contains(".ctor")
                     )
                 )

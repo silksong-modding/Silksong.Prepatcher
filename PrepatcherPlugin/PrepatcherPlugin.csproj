@@ -28,6 +28,10 @@
     <PackageId>Silksong.PrepatcherPlugin</PackageId>
     <RepositoryUrl>https://github.com/silksong-modding/Silksong.Prepatcher</RepositoryUrl>
   </PropertyGroup>
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(RepoRoot)/CompilerGenerated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.4.21" />
@@ -37,6 +41,9 @@
     <PackageReference Include="UnityEngine.Modules" Version="6000.0.50" IncludeAssets="compile" />
     <!--If you're unable resolve this dependency, check that you're using the nuget v3 package feed instead of v2.-->
     <PackageReference Include="Silksong.GameLibs" Version="*-*" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PrepatcherCodeGenerator\PrepatcherCodeGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(RepoRoot)/README.md" Pack="True" PackagePath="README.md" />
