@@ -9,7 +9,6 @@
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisMode>recommended</AnalysisMode>
     <IsPackable>False</IsPackable>
-    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoRoot>
   </PropertyGroup>
 
   <ItemGroup>

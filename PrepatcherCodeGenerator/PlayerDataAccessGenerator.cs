@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace PrepatcherCodeGenerator;
@@ -18,6 +19,29 @@ public class PlayerDataAccessGenerator : IIncrementalGenerator
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
+    /// <summary>
+    /// Returns true if symbol represents a field that is marked as having originally been nonpublic by the
+    /// bepinex publicizer.
+    /// </summary>
+    private bool WasNonPublic(IFieldSymbol symbol)
+    {
+        IEnumerable<AttributeData> bepInExAttrs = symbol
+            .GetAttributes()
+            .Where(a => a.AttributeClass?.ToDisplayString() == "BepInEx.AssemblyPublicizer.OriginalAttributesAttribute");
+
+        foreach (AttributeData attr in bepInExAttrs)
+        {
+            if (attr.ConstructorArguments.Length > 0 &&
+                attr.ConstructorArguments[0].Value is int val &&
+                val != (int)FieldAttributes.Public)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private bool IsValidField(IFieldSymbol symbol)
     {
         if (symbol.IsStatic || symbol.IsReadOnly)
@@ -29,8 +53,7 @@ public class PlayerDataAccessGenerator : IIncrementalGenerator
         {
             return false;
         }
-        // We assume that the publicizer doesn't make things non-public, so we don't need to check the attribute param
-        if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.ToDisplayString() == "BepInEx.AssemblyPublicizer.OriginalAttributesAttribute"))
+        if (WasNonPublic(symbol))
         {
             return false;
         }
@@ -149,5 +172,4 @@ public class PlayerDataAccessGenerator : IIncrementalGenerator
             spc.AddSource("PlayerDataAccess.g.cs", GenerateSourceText(playerDataTypeSymbol));
         });
     }
-
 }
