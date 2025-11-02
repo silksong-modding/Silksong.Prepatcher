@@ -35,6 +35,8 @@ public class PlayerDataAccessGenerator : IIncrementalGenerator
             return false;
         }
         // We would like to skip NonSerialized fields but the symbol.GetAttributes() doesn't seem to include NonSerialized
+        // That said, nothing should break if GetBool/whatever is applied to a NonSerialized public field so this is fine
+        // to include.
 
         return true;
     }
