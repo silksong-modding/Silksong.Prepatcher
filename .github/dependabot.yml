@@ -6,6 +6,8 @@ updates:
       - dependency-name: BepInEx.Core
       - dependency-name: HarmonyX
       - dependency-name: UnityEngine.Modules
+      - dependency-name: Microsoft.CodeAnalysis.CSharp
+      - dependency-name: Microsoft.CodeAnalysis.Analyzers
     schedule:
       interval: daily
   - directory: /
