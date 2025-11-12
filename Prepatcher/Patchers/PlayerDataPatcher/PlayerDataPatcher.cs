@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using MonoMod.Utils;
+using SilksongPrepatcher.PlayerData;
 using SilksongPrepatcher.Utils;
 
 namespace SilksongPrepatcher.Patchers.PlayerDataPatcher;
@@ -32,6 +34,8 @@ public class PlayerDataPatcher : BasePrepatcher
     {
         PatchingContext ctx = new(asm);
 
+        ReplaceAccessMethodBodies(ctx);
+
         PatchedMethodCache? cache = PatchedMethodCache.Deserialize(CacheFilePath);
         if (cache == null)
         {
@@ -41,6 +45,99 @@ public class PlayerDataPatcher : BasePrepatcher
         {
             ReplaceFieldAccessesFromCache(ctx, cache);
         }
+    }
+
+    private void ReplaceAccessMethodBodies(PatchingContext ctx)
+    {
+        ReplaceGetMethodBody(ctx, "GetBool", typeof(PDCache).GetMethod(nameof(PDCache.GetBool)));
+        ReplaceGetMethodBody(ctx, "GetInt", typeof(PDCache).GetMethod(nameof(PDCache.GetInt)));
+        ReplaceGetMethodBody(
+            ctx,
+            "GetString",
+            typeof(PDCache).GetMethod(nameof(PDCache.GetString))
+        );
+        ReplaceGetMethodBody(ctx, "GetFloat", typeof(PDCache).GetMethod(nameof(PDCache.GetFloat)));
+
+        ReplaceSetMethodBody(ctx, "SetBool", typeof(PDCache).GetMethod(nameof(PDCache.SetBool)));
+        ReplaceSetMethodBody(ctx, "SetInt", typeof(PDCache).GetMethod(nameof(PDCache.SetInt)));
+        ReplaceSetMethodBody(
+            ctx,
+            "SetString",
+            typeof(PDCache).GetMethod(nameof(PDCache.SetString))
+        );
+        ReplaceSetMethodBody(ctx, "SetFloat", typeof(PDCache).GetMethod(nameof(PDCache.SetFloat)));
+    }
+
+    private void ReplaceGetMethodBody(
+        PatchingContext ctx,
+        string methodName,
+        MethodInfo replacingMethod
+    )
+    {
+        MethodDefinition toReplace = ctx.PDType.Methods.FirstOrDefault(m => m.Name == methodName);
+
+        if (toReplace is null)
+        {
+            Log.LogError(
+                $"Failed to replace method {methodName} with method {replacingMethod.Name}"
+            );
+            return;
+        }
+
+        MethodReference mr = ctx.MainModule.ImportReference(replacingMethod);
+
+        toReplace.Body.ExceptionHandlers.Clear();
+        toReplace.Body.Variables.Clear();
+
+        ILProcessor processor = toReplace.Body.GetILProcessor();
+
+        foreach (Instruction instr in toReplace.Body.Instructions.ToList())
+        {
+            processor.Remove(instr);
+        }
+
+        processor.Append(processor.Create(OpCodes.Ldarg_0));
+        processor.Append(processor.Create(OpCodes.Ldarg_1));
+        processor.Append(processor.Create(OpCodes.Call, mr));
+        processor.Append(processor.Create(OpCodes.Ret));
+
+        toReplace.Body.InitLocals = false;
+    }
+
+    private void ReplaceSetMethodBody(
+        PatchingContext ctx,
+        string methodName,
+        MethodInfo replacingMethod
+    )
+    {
+        MethodDefinition toReplace = ctx.PDType.Methods.FirstOrDefault(m => m.Name == methodName);
+
+        if (toReplace is null)
+        {
+            Log.LogError(
+                $"Failed to replace method {methodName} with method {replacingMethod.Name}"
+            );
+            return;
+        }
+
+        MethodReference mr = ctx.MainModule.ImportReference(replacingMethod);
+
+        toReplace.Body.ExceptionHandlers.Clear();
+        toReplace.Body.Variables.Clear();
+
+        ILProcessor processor = toReplace.Body.GetILProcessor();
+
+        foreach (Instruction instr in toReplace.Body.Instructions.ToList())
+        {
+            processor.Remove(instr);
+        }
+
+        processor.Append(processor.Create(OpCodes.Ldarg_0));
+        processor.Append(processor.Create(OpCodes.Ldarg_1));
+        processor.Append(processor.Create(OpCodes.Ldarg_2));
+        processor.Append(processor.Create(OpCodes.Call, mr));
+
+        toReplace.Body.InitLocals = false;
     }
 
     private void ReplaceFieldAccessesFromCache(PatchingContext ctx, PatchedMethodCache cache)
