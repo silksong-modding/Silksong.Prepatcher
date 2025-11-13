@@ -91,14 +91,21 @@ public static class PlayerDataVariableEvents<T>
         // (T)current should not throw in normal circumstances - if current is not castable to T then GetVariable<T> should have returned null.
         // That said we guard the cast for safety.
         T casted;
-        try
+        if (current == null)
         {
-            casted = (T)current;
-        }
-        catch (Exception)
-        {
-            Log.LogWarning($"Failed to cast fieldname {fieldName}, object {current} to type {typeof(T)} in {nameof(ModifySetVariableNonGeneric)}");
             casted = default!;
+        }
+        else
+        {
+            try
+            {
+                casted = (T)current;
+            }
+            catch (Exception)
+            {
+                Log.LogWarning($"Failed to cast fieldname {fieldName}, object {current} to type {typeof(T)} in {nameof(ModifyGetVariableNonGeneric)}");
+                casted = default!;
+            }
         }
         return ModifyGetVariable(pd, fieldName, casted);
     }
