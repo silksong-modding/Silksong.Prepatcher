@@ -22,6 +22,8 @@ public class PlayerDataAccessGenerator : IIncrementalGenerator
 
     private record PDFieldData(string FieldName, string TypeName, string GetAccessor, string SetAccessor);
 
+    private record TypeData(string TypeName, string GetAccessorName, string SetAccessorName, string shortType);
+
     /// <summary>
     /// Returns true if symbol represents a field that is marked as having originally been nonpublic by the
     /// bepinex publicizer.
@@ -173,54 +175,84 @@ public class PlayerDataAccessGenerator : IIncrementalGenerator
             """);
         sb.AppendLine();
 
-        // Code goes here
-        // For now, I will just do GetBool
+        Dictionary<string, TypeData> accessTypes = new()
         {
-            StringBuilder getBoolSb = new();
-            StringBuilder setBoolSb = new();
-            getBoolSb.AppendLine("    public static bool GetBool(PlayerData pd, string boolName)");
-            getBoolSb.AppendLine("    {");
-            getBoolSb.AppendLine("        switch (boolName)");
-            getBoolSb.AppendLine("        {");
+            ["bool"] = new("bool", "GetBool", "SetBool", "bool"),
+            ["int"] = new("int", "GetInt", "SetInt", "int"),
+            ["string"] = new("string", "GetString", "SetString", "string"),
+            ["float"] = new("float", "GetFloat", "SetFloat", "float"),
+        };
 
-            setBoolSb.AppendLine("    public static void SetBool(PlayerData pd, string boolName, bool value)");
-            setBoolSb.AppendLine("    {");
-            setBoolSb.AppendLine("        switch (boolName)");
-            setBoolSb.AppendLine("        {");
+        Dictionary<string, StringBuilder> GetStringBuilders = accessTypes.Keys.ToDictionary(x => x, x => new StringBuilder());
+        Dictionary<string, StringBuilder> SetStringBuilders = accessTypes.Keys.ToDictionary(x => x, x => new StringBuilder());
 
-            foreach (PDFieldData field in pdFields)
+        foreach ((string typeName, StringBuilder getSb) in GetStringBuilders)
+        {
+            TypeData td = accessTypes[typeName];
+            getSb.AppendLine("/// <summary>");
+            getSb.AppendLine($"/// Internal get accessor for fields of type {typeName}");
+            getSb.AppendLine("/// </summary>");
+            getSb.AppendLine($"    public static {td.TypeName} {td.GetAccessorName}(PlayerData pd, string {td.shortType}Name)");
+            getSb.AppendLine("    {");
+            getSb.AppendLine($"        switch ({td.shortType}Name)");
+            getSb.AppendLine("        {");
+        }
+
+        foreach ((string typeName, StringBuilder setSb) in SetStringBuilders)
+        {
+            TypeData td = accessTypes[typeName];
+            setSb.AppendLine("/// <summary>");
+            setSb.AppendLine($"/// Internal set accessor for fields of type {typeName}");
+            setSb.AppendLine("/// </summary>");
+            setSb.AppendLine($"    public static void {td.SetAccessorName}(PlayerData pd, string {td.shortType}Name, {td.TypeName} value)");
+            setSb.AppendLine("    {");
+            setSb.AppendLine($"        switch ({td.shortType}Name)");
+            setSb.AppendLine("        {");
+        }
+
+        foreach (PDFieldData field in pdFields)
+        {
+            if (accessTypes.TryGetValue(field.TypeName, out TypeData td))
             {
-                if (field.TypeName == "bool")
-                {
-                    getBoolSb.AppendLine($"            case nameof(PlayerData.{field.FieldName}):");
-                    getBoolSb.AppendLine($"                return pd.{field.FieldName};");
+                StringBuilder getSb = GetStringBuilders[field.TypeName];
+                StringBuilder setSb = SetStringBuilders[field.TypeName];
 
-                    setBoolSb.AppendLine($"            case nameof(PlayerData.{field.FieldName}):");
-                    setBoolSb.AppendLine($"                pd.{field.FieldName} = value;");
-                    setBoolSb.AppendLine($"                return;");
-                }
+                getSb.AppendLine($"            case nameof(PlayerData.{field.FieldName}):");
+                getSb.AppendLine($"                return pd.{field.FieldName};");
+
+                setSb.AppendLine($"            case nameof(PlayerData.{field.FieldName}):");
+                setSb.AppendLine($"                pd.{field.FieldName} = value;");
+                setSb.AppendLine($"                return;");
             }
+        }
 
-            getBoolSb.AppendLine("            default:");
-            getBoolSb.AppendLine("                return default;");
-            getBoolSb.AppendLine("        }");
-            getBoolSb.AppendLine("    }");
+        foreach (StringBuilder getSb in GetStringBuilders.Values)
+        {
+            getSb.AppendLine("            default:");
+            getSb.AppendLine("                return default;");
+            getSb.AppendLine("        }");
+            getSb.AppendLine("    }");
+        }
 
-            setBoolSb.AppendLine("            default:");
-            setBoolSb.AppendLine("                return;");
-            setBoolSb.AppendLine("        }");
-            setBoolSb.AppendLine("    }");
+        foreach (StringBuilder setSb in SetStringBuilders.Values)
+        {
+            setSb.AppendLine("            default:");
+            setSb.AppendLine("                return;");
+            setSb.AppendLine("        }");
+            setSb.AppendLine("    }");
+        }
 
-            sb.Append(getBoolSb.ToString());
+        foreach (string key in accessTypes.Keys)
+        {
+            sb.Append(GetStringBuilders[key].ToString());
             sb.AppendLine();
-            sb.Append(setBoolSb.ToString());
+            sb.Append(SetStringBuilders[key].ToString());
             sb.AppendLine();
         }
 
         sb.Append("}\n");
 
         return sb.ToString();
-
     }
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
