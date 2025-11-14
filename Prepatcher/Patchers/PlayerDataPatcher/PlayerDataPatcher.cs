@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using BepInEx;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -32,6 +33,8 @@ public class PlayerDataPatcher : BasePrepatcher
     {
         PatchingContext ctx = new(asm);
 
+        ReplaceMethods(ctx);
+
         PatchedMethodCache? cache = PatchedMethodCache.Deserialize(CacheFilePath);
         if (cache == null)
         {
@@ -41,6 +44,100 @@ public class PlayerDataPatcher : BasePrepatcher
         {
             ReplaceFieldAccessesFromCache(ctx, cache);
         }
+    }
+
+    private static readonly List<(string methodName, int numArgs)> methodsToReplace = new()
+    {
+        ("GetBool", 2),
+        ("GetInt", 2),
+        ("GetString", 2),
+        ("GetFloat", 2),
+        ("SetBool", 3),
+        ("SetInt", 3),
+        ("SetString", 3),
+        ("SetFloat", 3),
+        ("IntAdd", 3),
+        ("IncrementInt", 2),
+        ("DecrementInt", 2),
+    };
+
+    private static string? GetPrepatcherPluginAssembly()
+    {
+        string prepatcherPluginPath = Path.Combine(
+            Paths.PluginPath,
+            "silksong_modding-SilksongPrepatcher",
+            "PrepatcherPlugin.dll"
+        );
+        if (File.Exists(prepatcherPluginPath))
+        {
+            return prepatcherPluginPath;
+        }
+
+        string[] files = Directory.GetFiles(
+            Paths.PluginPath,
+            "PrepatcherPlugin.dll",
+            SearchOption.AllDirectories
+        );
+        if (files.Length > 0)
+        {
+            return files[0];
+        }
+
+        return null;
+    }
+
+    private void ReplaceMethods(PatchingContext ctx)
+    {
+        // Try to find the assembly
+        // By default at silksong_modding-PrepatcherPlugin
+        string? prepatcherPluginPath = GetPrepatcherPluginAssembly();
+        if (string.IsNullOrEmpty(prepatcherPluginPath))
+        {
+            Log.LogWarning("Not replacing access methods: No plugin found");
+            return;
+        }
+
+        AssemblyDefinition replacerAssembly = AssemblyDefinition.ReadAssembly(prepatcherPluginPath);
+        ModuleDefinition replacerModule = replacerAssembly.MainModule;
+        TypeDefinition replacerType = replacerModule.Types.First(x =>
+            x.Name == "PlayerDataInternal"
+        );
+
+        foreach ((string methodName, int numArgs) in methodsToReplace)
+        {
+            ReplaceMethod(ctx, replacerType, methodName, numArgs);
+        }
+    }
+
+    private void ReplaceMethod(
+        PatchingContext ctx,
+        TypeDefinition replacerType,
+        string methodName,
+        int numArgs
+    )
+    {
+        MethodDefinition targetMethod = ctx.PDType.Methods.First(m => m.Name == methodName);
+        MethodDefinition newMethod = replacerType.Methods.First(m => m.Name == methodName);
+
+        targetMethod.Body.ExceptionHandlers.Clear();
+        targetMethod.Body.Variables.Clear();
+
+        ILProcessor ilProcessor = targetMethod.Body.GetILProcessor();
+        foreach (Instruction instr in targetMethod.Body.Instructions.ToList())
+        {
+            ilProcessor.Remove(instr);
+        }
+
+        for (int i = 0; i < numArgs; i++)
+        {
+            ilProcessor.Append(ilProcessor.Create(OpCodes.Ldarg, i));
+        }
+        ilProcessor.Append(
+            ilProcessor.Create(OpCodes.Call, ctx.MainModule.ImportReference(newMethod))
+        );
+        ilProcessor.Append(ilProcessor.Create(OpCodes.Ret));
+
+        targetMethod.Body.OptimizeMacros();
     }
 
     private void ReplaceFieldAccessesFromCache(PatchingContext ctx, PatchedMethodCache cache)
