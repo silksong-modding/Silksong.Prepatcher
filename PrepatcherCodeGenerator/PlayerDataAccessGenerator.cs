@@ -129,9 +129,6 @@ public class PlayerDataAccessGenerator : IIncrementalGenerator
 
             namespace PrepatcherPlugin;
 
-            // This class is generated at build time by PlayerDataAccessGenerator.
-            // It proxies access to fields on PlayerData using GetBool/SetBool, and similar
-            // for the other field types.
             public static partial class PlayerDataAccess
             {
             """);
@@ -168,8 +165,6 @@ public class PlayerDataAccessGenerator : IIncrementalGenerator
 
             namespace PrepatcherPlugin;
 
-            // This class is generated at build time by PlayerDataAccessGenerator.
-            // It generates efficient methods for accessing PD fields.
             public static partial class PlayerDataInternal
             {
             """);
