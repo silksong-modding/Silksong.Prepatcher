@@ -116,7 +116,7 @@ public class PlayerDataAccessGenerator : IIncrementalGenerator
         return new(symbol.Name, typeName, getAccessor, setAccessor);
     }
     
-    private string GenerateSourceText(IReadOnlyList<PDFieldData> fieldsToDelegate)
+    private string GenerateAccessSourceText(IReadOnlyList<PDFieldData> fieldsToDelegate)
     {
         StringBuilder sb = new();
         sb.Append($$"""
@@ -170,7 +170,7 @@ public class PlayerDataAccessGenerator : IIncrementalGenerator
 
         context.RegisterImplementationSourceOutput(fieldDatasProvider, (spc, fieldDatas) =>
         {
-            spc.AddSource("PlayerDataAccess.g.cs", GenerateSourceText(fieldDatas));
+            spc.AddSource("PlayerDataAccess.g.cs", GenerateAccessSourceText(fieldDatas));
         });
     }
 }
