@@ -3,13 +3,13 @@
   "isRoot": true,
   "tools": {
     "husky": {
-      "version": "0.7.2",
+      "version": "0.8.0",
       "commands": [
         "husky"
       ],
       "rollForward": false
     },
-	"tcli": {
+    "tcli": {
       "version": "0.2.4",
       "commands": [
         "tcli"
