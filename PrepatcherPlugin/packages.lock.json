@@ -42,9 +42,9 @@
       },
       "Silksong.GameLibs": {
         "type": "Direct",
-        "requested": "[*-*, )",
-        "resolved": "1.1.0-silksong1.0.28891",
-        "contentHash": "IplYreERpZ2m1zGFdfQYvzfjeJJ5KSTs7aVIdGhN0XjREfx4J3oq+vGmFBiH84ISxxKIggFu9ab2N0AMGl5xCA=="
+        "requested": "[1.1.0-silksong1.0.29315, )",
+        "resolved": "1.1.0-silksong1.0.29315",
+        "contentHash": "HHAt52uzuBXi8cn90/D7WC7YEptcW9yST5fo43lThzRaN6d/TLiXhy7d1Cv3UyACTnryKqINSYPqa2hSbLR+Qg=="
       },
       "UnityEngine.Modules": {
         "type": "Direct",
