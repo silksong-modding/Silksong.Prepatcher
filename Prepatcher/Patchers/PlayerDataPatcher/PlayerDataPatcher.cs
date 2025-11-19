@@ -89,7 +89,9 @@ public class PlayerDataPatcher : BasePrepatcher
             return;
         }
 
-        AssemblyDefinition replacerAssembly = AssemblyDefinition.ReadAssembly(prepatcherPluginPath);
+        using AssemblyDefinition replacerAssembly = AssemblyDefinition.ReadAssembly(
+            prepatcherPluginPath
+        );
         ModuleDefinition replacerModule = replacerAssembly.MainModule;
         TypeDefinition replacerType = replacerModule.Types.First(x =>
             x.Name == "PlayerDataInternal"
