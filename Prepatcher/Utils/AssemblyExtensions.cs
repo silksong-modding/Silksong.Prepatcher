@@ -18,6 +18,17 @@ public static class AssemblyExtensions
         }
     }
 
+    public static Type[] GetTypesSafelyIgnoreMMHook(Assembly asm)
+    {
+        if (asm.GetName().Name.StartsWith("MMHOOK"))
+
+        {
+            return [];
+        }
+
+        return asm.GetTypesSafely();
+    }
+
     public static Type[] GetTypesSafelyIgnoreModded(Assembly asm)
     {
         // Base game assemblies shouldn't need to be aware of modded assemblies,
