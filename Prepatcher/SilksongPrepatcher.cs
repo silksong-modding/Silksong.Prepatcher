@@ -19,12 +19,26 @@ public static class SilksongPrepatcher
 
     private static List<(string assemblyName, BasePrepatcher patcher)> GetPatcherData()
     {
-        // Patch all calls to Assembly.GetTypes so they skip MMHOOK assemblies, and in general don't throw if some types fail to load.
-        //
-        // If some of the action data in an FSM prefab is corrupted or incorrect, Playmaker will search all assemblies for all types
-        // to try to find the correct type. Certainly the MMHOOK assemblies don't contain the correct type, and the
+        // If some of the type names action data in an FSM prefab is corrupted or incorrect,
+        // Playmaker will search all assemblies for all types to try to find the correct type.
+        // Certainly the MMHOOK assemblies don't contain the correct type, and the
         // MMHOOK_Assembly-CSharp assembly is quite large and it is undesirable to load the whole assembly.
-        BasePrepatcher GetTypesPatcher = new MethodReplacer(
+        //
+        // We shouldn't skip all assemblies just in case someone decides to ship fsms with custom
+        // fsm state actions in an asset bundle.
+        BasePrepatcher GetTypesMMHookIgnorer = new MethodReplacer(
+            mr => mr.DeclaringType.Name == nameof(Assembly) && mr.Name == nameof(Assembly.GetTypes),
+            typeof(AssemblyExtensions).GetMethod(
+                nameof(AssemblyExtensions.GetTypesSafelyIgnoreMMHook),
+                [typeof(Assembly)]
+            )
+        );
+
+        // NestedFadeGroup searches all assemblies for a NestedFadeGroupBridgeAttribute - I don't
+        // think they do very much with this though that isn't implicit in the RequireComponent attribute
+        // and it's very unlikely modded assemblies will need it so I think the performance boost from
+        // skipping modded assemblies (about 3 seconds at startup) is worth it.
+        BasePrepatcher GetTypesModdedIgnorer = new MethodReplacer(
             mr => mr.DeclaringType.Name == nameof(Assembly) && mr.Name == nameof(Assembly.GetTypes),
             typeof(AssemblyExtensions).GetMethod(
                 nameof(AssemblyExtensions.GetTypesSafelyIgnoreMMHook),
@@ -46,8 +60,8 @@ public static class SilksongPrepatcher
 
         return new()
         {
-            (AssemblyNames.TeamCherry_NestedFadeGroup, GetTypesPatcher),
-            (AssemblyNames.PlayMaker, GetTypesPatcher),
+            (AssemblyNames.TeamCherry_NestedFadeGroup, GetTypesModdedIgnorer),
+            (AssemblyNames.PlayMaker, GetTypesMMHookIgnorer),
             (AssemblyNames.PlayMaker, new ReflectionUtilsPatcher()),
             (AssemblyNames.Assembly_CSharp, new PlayerDataPatcher()),
             (AssemblyNames.TeamCherry_SharedUtils, new VariableExtensionsPatcher()),
