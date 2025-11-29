@@ -27,7 +27,7 @@ public static class SilksongPrepatcher
         BasePrepatcher GetTypesPatcher = new MethodReplacer(
             mr => mr.DeclaringType.Name == nameof(Assembly) && mr.Name == nameof(Assembly.GetTypes),
             typeof(AssemblyExtensions).GetMethod(
-                nameof(AssemblyExtensions.GetTypesSafelyIgnoreMMHook),
+                nameof(AssemblyExtensions.GetTypesSafelyIgnoreModded),
                 [typeof(Assembly)]
             )
         );

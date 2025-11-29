@@ -18,11 +18,24 @@ public static class AssemblyExtensions
         }
     }
 
-    public static Type[] GetTypesSafelyIgnoreMMHook(Assembly asm)
+    public static Type[] GetTypesSafelyIgnoreModded(Assembly asm)
     {
-        // Base game assemblies shouldn't need to be aware of types in MMHOOK assemblies,
+        // Base game assemblies shouldn't need to be aware of modded assemblies,
         // so this is safe to do
-        if (asm.GetName().Name.StartsWith("MMHOOK"))
+
+        string asmName = asm.GetName().Name;
+        if (
+            asmName.StartsWith("TeamCherry")
+            || asmName == "Assembly-CSharp"
+            || asmName == "PlayMaker"
+        )
+        {
+            // This *should* avoid false negatives in the case
+            // that someone put their install inside a folder called BepInEx
+            return asm.GetTypesSafely();
+        }
+
+        if (asm.Location.Contains("BepInEx"))
         {
             return [];
         }
