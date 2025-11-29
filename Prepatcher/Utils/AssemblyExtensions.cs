@@ -21,7 +21,6 @@ public static class AssemblyExtensions
     public static Type[] GetTypesSafelyIgnoreMMHook(Assembly asm)
     {
         if (asm.GetName().Name.StartsWith("MMHOOK"))
-
         {
             return [];
         }

@@ -23,7 +23,7 @@ public static class SilksongPrepatcher
         // Playmaker will search all assemblies for all types to try to find the correct type.
         // Certainly the MMHOOK assemblies don't contain the correct type, and the
         // MMHOOK_Assembly-CSharp assembly is quite large and it is undesirable to load the whole assembly.
-        // 
+        //
         // We shouldn't skip all assemblies just in case someone decides to ship fsms with custom
         // fsm state actions in an asset bundle.
         BasePrepatcher GetTypesMMHookIgnorer = new MethodReplacer(
