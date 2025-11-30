@@ -63,7 +63,8 @@ public static class AssemblyExtensions
 
         if (name.StartsWith("System.") || name == "mscorlib")
         {
-            // Checking system assemblies takes significant time and are never needed by
+            // Checking system assemblies takes significant time and are never needed by these functions
+            return true;
         }
 
         if (name.StartsWith("MMHOOK"))
