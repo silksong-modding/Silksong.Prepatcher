@@ -76,12 +76,6 @@ public static class AssemblyExtensions
         if (asm.GetType("MonoDetour.HookGen.MonoDetourTargetsAttribute") != null)
         {
             // MonoDetour creates a lot of types so we should skip these in general
-            // Provide an option for assemblies using MonoDetour to opt-in, although
-            // this should never be used
-            if (asm.GetType("Prepatcher_GetTypesOptIn") != null)
-            {
-                return false;
-            }
             return true;
         }
 
