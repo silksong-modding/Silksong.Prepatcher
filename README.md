@@ -76,11 +76,20 @@ through the events defined in the PrepatcherPlugin.
 In particular, this allows for compatibility between mods that interact with
 PlayerData in different ways.
 
-* Replace certain calls to Assembly.GetTypes with calls to a safe method.
+* Replace certain calls to Assembly.GetTypes with calls to safe methods.
 In particular, the new method will not throw when types that are not loadable
 are present in an assembly, and will ignore MMHOOK_ assemblies (which may contain
 many types, none of which are of interest to functions defined in base game
 assemblies).
+To verify the changes the Prepatcher is making here are appropriate, check the following
+without the Prepatcher installed (can be done easily with a simple MonoMod Hook):
+  - Log the duration of the `NestedFadeGroup.AddMissingBridgeComponents` method in
+    `TeamCherry.NestedFadeGroup.dll`. This executes once during startup but is very
+    slow if the game has to check a lot of types from a lot of assemblies.
+  - Log the duration of long (i.e. longer than 1ms) calls to `ReflectionUtils.GetGlobalType`
+    in `PlayMaker.dll`, particularly when entering scenes like Bone_04, Bone_10 and Greymoor_08
+    (among others). These specific cases are handled by the ReflectionUtilsPatcher, but
+    in general the GetTypes replacement will speed up the functions.
 
 * Replace certain calls to Type.IsAssignableFrom with calls to a safe method.
 For some reason, in certain circumstances types will be loadable by
