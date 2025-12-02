@@ -57,7 +57,7 @@ public static class AssemblyExtensions
             || name.StartsWith("Assembly-CSharp")
         )
         {
-            // Always look at TC assemblies; these are the only assemblies that are actually needed in unmodded
+            // Always look at TC assemblies; these are the only assemblies that are actually needed by the relevant functions
             return false;
         }
 
