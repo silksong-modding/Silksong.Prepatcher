@@ -23,6 +23,8 @@ The Prepatcher causes this function to skip modded assemblies, which speeds up s
   - If you are modifying Player Data, you do not need to depend on the Prepatcher. To allow mods that monitor
   Player Data accesses to see the changes you make, you should use the existing Get/Set variable functions
   to do so.
+  
+For more information on PlayerData access, see <xref:PlayerDataArticle>.
 
 
 ## Usage

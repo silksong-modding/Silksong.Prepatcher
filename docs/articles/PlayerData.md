@@ -1,3 +1,7 @@
+---
+uid: PlayerDataArticle
+---
+
 # Player Data access
 
 It is common for mods to want to monitor and control Player Data accesses. The Prepatcher Plugin provides
@@ -18,7 +22,7 @@ PlayerData.instance.hasWalljump = true;
 PlayerData.instance.SetBool(nameof(PlayerData.hasWalljump), true);
 ```
 
-As an alternative, the PlayerDataAccess class provides properties that delegate the get/set accessors to
+As an alternative, the @"PrepatcherPlugin.PlayerDataAccess" class provides properties that delegate the get/set accessors to
 the appropriate get/set variable methods:
 
 ```
@@ -27,7 +31,7 @@ PlayerDataAccess.hasWalljump = true;  // This calls the SetBool method behind th
 ```
 
 The same applies to fields of other types; if the type is not bool, int, string, float or Vector2,
-then the GetVariable<T> extension method (defined in TeamCherry.SharedUtils) should be used instead.
+then the `GetVariable<T>` extension method (defined in TeamCherry.SharedUtils) should be used instead.
 
 ## Monitoring access
 
@@ -83,3 +87,5 @@ by a player data field. If you are adding that component to a custom game object
 wish to have more control over its behaviour; the easiest way to do this is to set the string defining
 the player data variable to a custom string, and then listen to the appropriate 
 `PlayerDataVariableEvents<T>.OnGetVariable` event to control what the game sees.
+
+For more information on the events, see @"PrepatcherPlugin.PlayerDataVariableEvents" and @"PrepatcherPlugin.PlayerDataVariableEvents`1".
