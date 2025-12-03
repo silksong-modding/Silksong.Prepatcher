@@ -1,0 +1,14 @@
+### YamlMime:ManagedReference
+apiRules:
+  - exclude:
+      uidRegex: 'PrepatcherPlugin\.PlayerDataAccess\..*'
+      type: Property
+  # These methods are the same as methods on the PlayerData class
+  - exclude:
+      uidRegex: 'PrepatcherPlugin\.PlayerDataInternal\.IncrementInt'
+  - exclude:
+      uidRegex: 'PrepatcherPlugin\.PlayerDataInternal\.DecrementInt'
+  - exclude:
+      uidRegex: 'PrepatcherPlugin\.PlayerDataInternal\.IntAdd'
+  - exclude:
+      uidRegex: 'PrepatcherPlugin\.PrepatcherPlugin'
