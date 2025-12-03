@@ -29,7 +29,7 @@ public static class SilksongPrepatcher
         BasePrepatcher GetTypesMMHookIgnorer = new MethodReplacer(
             mr => mr.DeclaringType.Name == nameof(Assembly) && mr.Name == nameof(Assembly.GetTypes),
             typeof(AssemblyExtensions).GetMethod(
-                nameof(AssemblyExtensions.GetTypesSafelyIgnoreMMHook),
+                nameof(AssemblyExtensions.GetTypesSafelyIgnoreMMHOOK),
                 [typeof(Assembly)]
             )
         );
@@ -41,7 +41,7 @@ public static class SilksongPrepatcher
         BasePrepatcher GetTypesModdedIgnorer = new MethodReplacer(
             mr => mr.DeclaringType.Name == nameof(Assembly) && mr.Name == nameof(Assembly.GetTypes),
             typeof(AssemblyExtensions).GetMethod(
-                nameof(AssemblyExtensions.GetTypesSafelyIgnoreMMHook),
+                nameof(AssemblyExtensions.GetTypesSafelyIgnoreModded),
                 [typeof(Assembly)]
             )
         );
