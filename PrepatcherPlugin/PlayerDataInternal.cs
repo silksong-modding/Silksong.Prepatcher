@@ -1,4 +1,6 @@
-﻿namespace PrepatcherPlugin;
+﻿using System.ComponentModel;
+
+namespace PrepatcherPlugin;
 
 /// <summary>
 /// Class containing methods for accessing Player Data values that replace default methods.
@@ -6,24 +8,33 @@
 public static partial class PlayerDataInternal
 {
     /// <summary>
-    /// pd.IncrementInt, routed via IntAdd
+    /// <see cref="PlayerData.IncrementInt(string)" />, routed via IntAdd.
+    /// 
+    /// Mods should use the original PlayerData method, not this one.
     /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public static void IncrementInt(PlayerData pd, string intName)
     {
         IntAdd(pd, intName, 1);
     }
 
     /// <summary>
-    /// pd.DecrementInt, routed via IntAdd
+    /// <see cref="PlayerData.DecrementInt(string)" />, routed via IntAdd.
+    /// 
+    /// Mods should use the original PlayerData method, not this one.
     /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public static void DecrementInt(PlayerData pd, string intName)
     {
         IntAdd(pd, intName, -1);
     }
 
     /// <summary>
-    /// pd.IntAdd, routed via GetInt and SetInt
+    /// <see cref="PlayerData.IntAdd(string, int)"/>, routed via GetInt and SetInt.
+    /// 
+    /// Mods should use the original PlayerData method, not this one.
     /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public static void IntAdd(PlayerData pd, string intName, int amount)
     {
         int current = pd.GetInt(intName);
