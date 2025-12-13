@@ -43,7 +43,7 @@ jobs:
     - name: Pack
       run: dotnet pack -o nuget/
     - name: Upload generated PlayerData.cs file
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: Generated
         path: CompilerGenerated/PrepatcherCodeGenerator
@@ -56,12 +56,12 @@ jobs:
     - name: Pack Thunderstore
       run: dotnet tcli build --config-path thunderstore/thunderstore.toml --package-version ${{ steps.version.outputs.version }}
     - name: Upload thunderstore artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: mod-bundle
         path: thunderstore/dist
     - name: Upload nuget artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: nuget
         path: nuget/
