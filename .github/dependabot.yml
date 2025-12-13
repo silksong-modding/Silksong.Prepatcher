@@ -1,4 +1,11 @@
-version: 2    
+version: 2
+registries:
+  nuget-public:
+    type: nuget-feed
+    url: https://api.nuget.org/v3/index.json
+  bepinex:
+    type: nuget-feed
+    url: https://nuget.bepinex.dev/v3/index.json
 updates:
   - directory: /
     package-ecosystem: nuget
@@ -10,6 +17,9 @@ updates:
       - dependency-name: Microsoft.CodeAnalysis.Analyzers
     schedule:
       interval: daily
+    registries:
+      - nuget-public
+      - bepinex
   - directory: /
     package-ecosystem: github-actions
     schedule:
