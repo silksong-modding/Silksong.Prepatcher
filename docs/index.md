@@ -21,7 +21,7 @@ assemblies are skipped because checking all types in an assembly can be costly. 
 in the search by adding the following block to your csproj:
 ```cs
   <ItemGroup>
-    <AssemblyMetadata Include="SilksongPrepatcher.NoSkipGetTypes" Value="True" />
+    <AssemblyMetadata Include="SilksongPrepatcher.IncludeInUnmoddedTypeSearch" Value="True" />
   </ItemGroup>
 ```
 You do not need the Prepatcher to be installed in this case.
