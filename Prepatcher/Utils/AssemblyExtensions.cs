@@ -7,7 +7,7 @@ namespace SilksongPrepatcher.Utils;
 
 public static class AssemblyExtensions
 {
-    public const string NoSkipAttributeKey = "SilksongPrepatcher.NoSkipGetTypes";
+    public const string IncludeInTypeSearchAttributeKey = "SilksongPrepatcher.IncludeInUnmoddedTypeSearch";
 
     public static Type[] GetTypesSafely(this Assembly asm)
     {
@@ -74,7 +74,7 @@ public static class AssemblyExtensions
                 // Skip all assemblies in the BepInEx folder unless they have the custom attribute
                 if (
                     asm.GetCustomAttributes<AssemblyMetadataAttribute>()
-                        .Any(m => m.Key == NoSkipAttributeKey && m.Value == "True")
+                        .Any(m => m.Key == IncludeInTypeSearchAttributeKey && m.Value == "True")
                 )
                 {
                     return false;
