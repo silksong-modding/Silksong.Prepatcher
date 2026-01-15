@@ -7,7 +7,8 @@ namespace SilksongPrepatcher.Utils;
 
 public static class AssemblyExtensions
 {
-    public const string IncludeInTypeSearchAttributeKey = "SilksongPrepatcher.IncludeInUnmoddedTypeSearch";
+    public const string IncludeInTypeSearchAttributeKey =
+        "SilksongPrepatcher.IncludeInUnmoddedTypeSearch";
 
     public static Type[] GetTypesSafely(this Assembly asm)
     {
