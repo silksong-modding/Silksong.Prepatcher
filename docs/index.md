@@ -25,6 +25,9 @@ in the search by adding the following block to your csproj:
   </ItemGroup>
 ```
 You do not need the Prepatcher to be installed in this case.
+* If you are defining custom JsonConverters which you do not want to be used to convert all members of the given type,
+you might need the Prepatcher installed to prevent runtime errors. That is because Newtonsoft.Json.UnityConverters
+scans all assemblies for JsonConverter types and adds them to the default serializer.
 * If you are interacting with PlayerData, you may need the PrepatcherPlugin installed.
   - The Prepatcher replaces all get/set accesses to PlayerData fields with calls to the appropriate Get/Set
   functions, so mods that want to monitor player data accesses globally should depend on the Prepatcher
