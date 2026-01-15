@@ -15,6 +15,16 @@ whether this will happen, so it is best to test without the dependency installed
 This is because the MMHOOK_Assembly-CSharp file is quite large, and there are certain places where
 the game looks over all loaded assemblies for types - an example (on the most recent patch) is Bone_04.
 The Prepatcher causes this function to skip modded assemblies, which speeds up scene loading in these cases.
+* If you need base game functions that search over all assemblies to include yours,
+then you may need to tell the Prepatcher to avoid skipping your assembly. By default all modded
+assemblies are skipped because checking all types in an assembly can be costly. You can include your assembly
+in the search by adding the following block to your csproj:
+```cs
+  <ItemGroup>
+    <AssemblyMetadata Include="SilksongPrepatcher.NoSkipGetTypes" Value="True" />
+  </ItemGroup>
+```
+You do not need the Prepatcher to be installed in this case.
 * If you are interacting with PlayerData, you may need the PrepatcherPlugin installed.
   - The Prepatcher replaces all get/set accesses to PlayerData fields with calls to the appropriate Get/Set
   functions, so mods that want to monitor player data accesses globally should depend on the Prepatcher

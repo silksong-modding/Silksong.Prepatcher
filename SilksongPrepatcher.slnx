@@ -1,5 +1,5 @@
 <Solution>
   <Project Path="Prepatcher/SilksongPrepatcher.csproj" />
-  <Project Path="PrepatcherPlugin/PrepatcherPlugin.csproj" />
   <Project Path="PrepatcherCodeGenerator/PrepatcherCodeGenerator.csproj" />
+  <Project Path="PrepatcherPlugin/PrepatcherPlugin.csproj" />
 </Solution>

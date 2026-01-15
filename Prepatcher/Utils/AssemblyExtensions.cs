@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using BepInEx.Logging;
+using BepInEx;
 
 namespace SilksongPrepatcher.Utils;
 
 public static class AssemblyExtensions
 {
+    public const string NoSkipAttributeKey = "SilksongPrepatcher.NoSkipGetTypes";
+
     public static Type[] GetTypesSafely(this Assembly asm)
     {
         try
@@ -21,17 +23,7 @@ public static class AssemblyExtensions
 
     public static Type[] GetTypesSafelyIgnoreModded(Assembly asm)
     {
-        if (ShouldSkip(asm, skipModdedAssemblies: true))
-        {
-            return [];
-        }
-
-        return asm.GetTypesSafely();
-    }
-
-    public static Type[] GetTypesSafelyIgnoreMMHOOK(Assembly asm)
-    {
-        if (ShouldSkip(asm, skipModdedAssemblies: false))
+        if (ShouldSkip(asm))
         {
             return [];
         }
@@ -46,9 +38,8 @@ public static class AssemblyExtensions
     /// selected assemblies (e.g. TC assemblies and PlayMaker - see SilksongPrepatcher.cs for specifics).
     /// </summary>
     /// <param name="asm">The assembly.</param>
-    /// <param name="skipModdedAssemblies">If this is true, then assemblies in the BepInEx dir will be skipped.</param>
     /// <returns>True for assemblies that shouldn't have their types iterated over by the caller.</returns>
-    private static bool ShouldSkip(Assembly asm, bool skipModdedAssemblies)
+    private static bool ShouldSkip(Assembly asm)
     {
         string name = asm.GetName().Name;
         if (
@@ -67,19 +58,6 @@ public static class AssemblyExtensions
             return true;
         }
 
-        if (name.StartsWith("MMHOOK"))
-        {
-            // MMHOOK assemblies never need to be read
-            return true;
-        }
-
-        if (asm.GetType("MonoDetour.HookGen.MonoDetourTargetsAttribute") != null)
-        {
-            // MonoDetour creates a lot of types so we should skip these in general
-            return true;
-        }
-
-        if (skipModdedAssemblies)
         {
             string location;
             try
@@ -91,8 +69,17 @@ public static class AssemblyExtensions
                 // Dynamic assembly
                 location = string.Empty;
             }
-            if (location.Contains("BepInEx"))
+            if (location.StartsWith(Paths.BepInExRootPath))
             {
+                // Skip all assemblies in the BepInEx folder unless they have the custom attribute
+                if (
+                    asm.GetCustomAttributes<AssemblyMetadataAttribute>()
+                        .Any(m => m.Key == NoSkipAttributeKey && m.Value == "True")
+                )
+                {
+                    return false;
+                }
+
                 return true;
             }
         }

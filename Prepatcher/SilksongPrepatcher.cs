@@ -19,25 +19,22 @@ public static class SilksongPrepatcher
 
     private static List<(string assemblyName, BasePrepatcher patcher)> GetPatcherData()
     {
-        // If some of the type names action data in an FSM prefab is corrupted or incorrect,
-        // Playmaker will search all assemblies for all types to try to find the correct type.
-        // Certainly the MMHOOK assemblies don't contain the correct type, and the
-        // MMHOOK_Assembly-CSharp assembly is quite large and it is undesirable to load the whole assembly.
-        //
-        // We shouldn't skip all assemblies just in case someone decides to ship fsms with custom
-        // fsm state actions in an asset bundle.
-        BasePrepatcher GetTypesMMHookIgnorer = new MethodReplacer(
-            mr => mr.DeclaringType.Name == nameof(Assembly) && mr.Name == nameof(Assembly.GetTypes),
-            typeof(AssemblyExtensions).GetMethod(
-                nameof(AssemblyExtensions.GetTypesSafelyIgnoreMMHOOK),
-                [typeof(Assembly)]
-            )
-        );
-
-        // NestedFadeGroup searches all assemblies for a NestedFadeGroupBridgeAttribute - I don't
-        // think they do very much with this though that isn't implicit in the RequireComponent attribute
-        // and it's very unlikely modded assemblies will need it so I think the performance boost from
-        // skipping modded assemblies (about 3 seconds at startup) is worth it.
+        /*
+         * If some of the type names action data in an FSM prefab is corrupted or incorrect,
+         * Playmaker will search all assemblies for all types to try to find the correct type.
+         * Certainly the MMHOOK assemblies don't contain the correct type, and the
+         * MMHOOK_Assembly-CSharp assembly is quite large and it is undesirable to load the whole assembly.
+         *
+         * NestedFadeGroup searches all assemblies for a NestedFadeGroupBridgeAttribute - I don't
+         * think they do very much with this though that isn't implicit in the RequireComponent attribute
+         * and it's very unlikely modded assemblies will need it so I think the performance boost from
+         * skipping modded assemblies (about 3 seconds at startup) is worth it.
+         *
+         * Newtonsoft.Json.UnityConverters searches all assemblies for instantiable subtypes of
+         * JsonConverter. This can cause problems if mods define json converters that they don't
+         * want to apply all the time. We modify this behaviour so that modded assemblies
+         * are skipped, unless they define SilksongPrepatcherNoSkipAttribute attribute.
+         */
         BasePrepatcher GetTypesModdedIgnorer = new MethodReplacer(
             mr => mr.DeclaringType.Name == nameof(Assembly) && mr.Name == nameof(Assembly.GetTypes),
             typeof(AssemblyExtensions).GetMethod(
@@ -58,15 +55,16 @@ public static class SilksongPrepatcher
             )
         );
 
-        return new()
-        {
+        return
+        [
             (AssemblyNames.TeamCherry_NestedFadeGroup, GetTypesModdedIgnorer),
-            (AssemblyNames.PlayMaker, GetTypesMMHookIgnorer),
+            (AssemblyNames.PlayMaker, GetTypesModdedIgnorer),
+            (AssemblyNames.Newtonsoft_Json_UnityConverters, GetTypesModdedIgnorer),
             (AssemblyNames.PlayMaker, new ReflectionUtilsPatcher()),
             (AssemblyNames.Assembly_CSharp, new PlayerDataPatcher()),
             (AssemblyNames.TeamCherry_SharedUtils, new VariableExtensionsPatcher()),
             (AssemblyNames.Newtonsoft_Json_UnityConverters, NewtonsoftUnityPatcher),
-        };
+        ];
     }
 
     private static readonly List<(string assemblyName, BasePrepatcher patcher)> patcherData =
