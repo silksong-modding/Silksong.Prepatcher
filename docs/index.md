@@ -18,7 +18,8 @@ The Prepatcher causes this function to skip modded assemblies, which speeds up s
 * If you need base game functions that search over all assemblies to include yours,
 then you may need to tell the Prepatcher to avoid skipping your assembly. By default all modded
 assemblies are skipped because checking all types in an assembly can be costly. You can include your assembly
-in the search by adding the following block to your csproj:
+in the search by adding the following block to your csproj
+(or use the [equivalent assembly attribute](https://learn.microsoft.com/en-us/dotnet/api/system.reflection.assemblymetadataattribute)):
 ```cs
   <ItemGroup>
     <AssemblyMetadata Include="SilksongPrepatcher.IncludeInUnmoddedTypeSearch" Value="True" />
