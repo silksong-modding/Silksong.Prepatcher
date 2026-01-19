@@ -35,13 +35,14 @@
     "output": "_site",
     "template": [
       "default",
-      "modern"
+      "modern",
+      "silksong-modding-style-docfx"
     ],
     "globalMetadata": {
-      "_appName": "",
-      "_appTitle": "",
+      "_appName": "Prepatcher",
+      "_appTitle": "Prepatcher",
       "_enableSearch": true,
-      "pdf": true
+      "pdf": false
     }
   }
 }
