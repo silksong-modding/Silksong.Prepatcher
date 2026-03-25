@@ -3,11 +3,21 @@ using System.Collections.Generic;
 
 namespace PrepatcherPlugin;
 
-internal class PriorityEventField<T>(Func<T, int> getPriority)
+/// <summary>
+/// Object representing the backing field of a priority event. This object should
+/// not be exposed directly, but instead through the add and remove methods on
+/// a public event which delegate to the <see cref="Add(T)"/> and <see cref="Remove(T)"/>
+/// methods of this object.
+/// </summary>
+/// <typeparam name="T">The type of the event.</typeparam>
+/// <param name="getPriority">Function to get the priority of an element.
+/// It is expected that this function is pure (returns an identical output
+/// for an identical input).</param>
+internal class PriorityEventField<T>(Func<T, float> getPriority)
 {
-    private readonly Func<T, int> _getPriority = getPriority;
+    private readonly Func<T, float> _getPriority = getPriority;
 
-    private readonly SortedDictionary<int, List<T>> _subscribers = [];
+    private readonly SortedDictionary<float, List<T>> _subscribers = [];
 
     public IEnumerable<T> GetInvocationList()
     {
@@ -22,7 +32,7 @@ internal class PriorityEventField<T>(Func<T, int> getPriority)
 
     public void Add(T obj)
     {
-        int priority = _getPriority(obj);
+        float priority = _getPriority(obj);
         if (_subscribers.TryGetValue(priority, out List<T> subscriberList))
         {
             subscriberList.Add(obj);
@@ -35,7 +45,7 @@ internal class PriorityEventField<T>(Func<T, int> getPriority)
 
     public void Remove(T obj)
     {
-        int priority = _getPriority(obj);
+        float priority = _getPriority(obj);
         if (_subscribers.TryGetValue(priority, out List<T> subscriberList))
         {
             subscriberList.Remove(obj);
