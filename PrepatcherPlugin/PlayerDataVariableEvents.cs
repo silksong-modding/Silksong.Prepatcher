@@ -27,6 +27,7 @@ public static class PlayerDataVariableEvents<T>
 
     /// <summary>
     /// Event to control the return value of PlayerData.GetVariable with generic type parameter <typeparamref name="T"/>.
+    /// Event subscriber execution order can be controlled using the <see cref="EventSubscriptionPriorityAttribute"/>.
     /// 
     /// If <typeparamref name="T"/> is bool, string, int, float or Vector3, this is equivalent
     /// to the relevant event on <see cref="PlayerDataVariableEvents"/>.
@@ -46,6 +47,7 @@ public static class PlayerDataVariableEvents<T>
 
     /// <summary>
     /// Event to control the value set by PlayerData.SetVariable with generic type parameter <typeparamref name="T"/>.
+    /// Event subscriber execution order can be controlled using the <see cref="EventSubscriptionPriorityAttribute"/>.
     /// 
     /// If <typeparamref name="T"/> is bool, string, int, float or Vector3, this is equivalent
     /// to the relevant method on <see cref="PlayerDataVariableEvents"/>.
