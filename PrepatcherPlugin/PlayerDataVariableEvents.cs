@@ -1,6 +1,5 @@
 ﻿using BepInEx.Logging;
 using System;
-using System.Linq;
 using UnityEngine;
 using Logger = BepInEx.Logging.Logger;
 
@@ -23,11 +22,13 @@ public static class PlayerDataVariableEvents<T>
     /// <returns>The modified value. Subscribers should return <paramref name="current"/> to avoid changing anything.</returns>
     public delegate T PlayerDataVariableHandler(PlayerData pd, string fieldName, T current);
 
-    private static PlayerDataVariableHandler? _onGetVariable;
-    private static PlayerDataVariableHandler? _onSetVariable;
+    private static PriorityEventField<PlayerDataVariableHandler?> _onGetVariableSubscribers = new(EventSubscriptionPriorityAttribute.GetPriority);
+    private static PriorityEventField<PlayerDataVariableHandler?> _onSetVariableSubscribers = new(EventSubscriptionPriorityAttribute.GetPriority);
 
     /// <summary>
     /// Event to control the return value of PlayerData.GetVariable with generic type parameter <typeparamref name="T"/>.
+    /// Event subscriber execution order can be controlled using the <see cref="EventSubscriptionPriorityAttribute"/>;
+    /// by convention subscribers at a priority of float.MaxValue or float.MinValue should not modify the value of current.
     /// 
     /// If <typeparamref name="T"/> is bool, string, int, float or Vector3, this is equivalent
     /// to the relevant event on <see cref="PlayerDataVariableEvents"/>.
@@ -37,16 +38,18 @@ public static class PlayerDataVariableEvents<T>
         add
         {
             Hooks.EnsureHooked();
-            _onGetVariable += value;
+            _onGetVariableSubscribers.Add(value);
         }
         remove
         {
-            _onGetVariable -= value;
+            _onGetVariableSubscribers.Remove(value);
         }
     }
 
     /// <summary>
     /// Event to control the value set by PlayerData.SetVariable with generic type parameter <typeparamref name="T"/>.
+    /// Event subscriber execution order can be controlled using the <see cref="EventSubscriptionPriorityAttribute"/>;
+    /// by convention subscribers at a priority of float.MaxValue or float.MinValue should not modify the value of current.
     /// 
     /// If <typeparamref name="T"/> is bool, string, int, float or Vector3, this is equivalent
     /// to the relevant method on <see cref="PlayerDataVariableEvents"/>.
@@ -56,26 +59,26 @@ public static class PlayerDataVariableEvents<T>
         add
         {
             Hooks.EnsureHooked();
-            _onSetVariable += value;
+            _onSetVariableSubscribers.Add(value);
         }
         remove
         {
-            _onSetVariable -= value;
+            _onSetVariableSubscribers.Remove(value);
         }
     }
 
     internal static T ModifyGetVariable(PlayerData pd, string fieldName, T current)
     {
-        if (_onGetVariable == null)
+        foreach (PlayerDataVariableHandler? handler in _onGetVariableSubscribers.GetInvocationList())
         {
-            return current;
-        }
+            if (handler is null)
+            {
+                continue;
+            }
 
-        foreach (PlayerDataVariableHandler handler in _onGetVariable.GetInvocationList().Cast<PlayerDataVariableHandler>())
-        {
             try
             {
-                current = handler(pd, fieldName, current);
+                current = handler.Invoke(pd, fieldName, current);
             }
             catch (Exception ex)
             {
@@ -112,13 +115,13 @@ public static class PlayerDataVariableEvents<T>
 
     internal static T ModifySetVariable(PlayerData pd, string fieldName, T current)
     {
-        if (_onSetVariable == null)
+        foreach (PlayerDataVariableHandler? handler in _onSetVariableSubscribers.GetInvocationList())
         {
-            return current;
-        }
+            if (handler is null)
+            {
+                continue;
+            }
 
-        foreach (PlayerDataVariableHandler handler in _onSetVariable.GetInvocationList())
-        {
             try
             {
                 current = handler(pd, fieldName, current);
