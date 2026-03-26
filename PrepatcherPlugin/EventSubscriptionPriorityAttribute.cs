@@ -5,7 +5,8 @@ namespace PrepatcherPlugin;
 
 /// <summary>
 /// Attribute that can be applied to a method to specify a priority, with smaller/more negative
-/// priorities being executed before larger/more positive priorities.
+/// priorities being executed before larger/more positive priorities. Subscribers with the
+/// same priority will be invoked in the order they subscribed.
 /// 
 /// The default priority (if this attribute is not applied) is zero.
 /// </summary>
