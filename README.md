@@ -2,6 +2,16 @@
 
 Prepatcher with general purpose assembly modifications for Hollow Knight: Silksong.
 
+# Installation note
+
+If you are manually installing the Prepatcher, you will need to do the following:
+* Copy the contents of the `patchers` folder in the downloaded zip to
+`BepInEx/patchers/silksong_modding-SilksongPrepatcher`
+* Copy the contents of the `plugins` folder in the downloaded zip to
+`BepInEx/plugins/silksong_modding-SilksongPrepatcher`
+
+If you are using an installer to install the prepatcher, this will be handled automatically.
+
 # PrepatcherPlugin
 
 This plugin exposes events to monitor player data accesses, and control the value
