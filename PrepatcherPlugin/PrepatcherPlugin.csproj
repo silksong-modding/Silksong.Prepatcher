@@ -26,7 +26,7 @@
     <PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
     <PackageId>Silksong.PrepatcherPlugin</PackageId>
-    <RepositoryUrl>https://github.com/silksong-modding/Silksong.Prepatcher</RepositoryUrl>
+    <RepositoryUrl>https://git.silksong-modding.org/silksong-modding/Silksong.Prepatcher</RepositoryUrl>
   </PropertyGroup>
   <PropertyGroup>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
