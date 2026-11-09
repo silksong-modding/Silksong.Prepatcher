@@ -9,7 +9,7 @@ namespace = "silksong_modding"
 description = "General Preloader Patcher for Silksong Modding."
 
 # Replace this with a correct repo URL if the default is not accurate
-websiteUrl = "https://github.com/silksong-modding/Silksong.Prepatcher"
+websiteUrl = "https://git.silksong-modding.org/silksong-modding/Silksong.Prepatcher"
 containsNsfwContent = false
 
 
