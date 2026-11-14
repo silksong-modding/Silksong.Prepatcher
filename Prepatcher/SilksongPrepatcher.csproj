@@ -23,7 +23,7 @@
     <PackageReference Include="BepInEx.Core" Version="5.4.21" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CSharpier.MsBuild" Version="1.1.2" PrivateAssets="all" />
+    <PackageReference Include="CSharpier.MsBuild" Version="1.4.0" PrivateAssets="all" />
   </ItemGroup>
   <Target Name="CopyMod" AfterTargets="PostBuildEvent">
     <ItemGroup>
